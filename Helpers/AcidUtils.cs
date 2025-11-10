@@ -35,4 +35,15 @@ public static class AcidUtils
 
         return p;
     }
+
+    public static Color AddColor(Color a, Color b)
+    {
+        var newColor = Color.Black;
+        newColor.R = (byte) MathHelper.Clamp(a.R + b.R, 0, 255);
+        newColor.G = (byte) MathHelper.Clamp(a.G + b.G, 0, 255);
+        newColor.B = (byte) MathHelper.Clamp(a.B + b.B, 0, 255);
+        newColor.A = (byte) MathHelper.Clamp(a.A + b.A, 0, 255);
+        
+        return newColor;
+    }
 }
