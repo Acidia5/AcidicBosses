@@ -56,6 +56,15 @@ public partial class TwinsController
 
         ref var spazDone = ref NPC.localAI[0];
         ref var retDone = ref NPC.localAI[1];
+        
+        if (Spazmatism == null || Retinazer == null)
+        {
+            spazDone = 0;
+            retDone = 0;
+            attackManager.CountUp = false;
+            return true;
+        }
+        
         if (attackManager.AiTimer == 0)
         {
             Spazmatism.AttackManager.AiTimer = 0;

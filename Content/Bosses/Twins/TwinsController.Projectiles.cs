@@ -36,13 +36,15 @@ public partial class TwinsController
         new FakeAfterimage(startPos, endPos, twin.Npc).Spawn();
     }
 
-    private Projectile NewSpazFlamethrower(Vector2 pos, float rotation)
+    private Projectile? NewSpazFlamethrower(Vector2 pos, float rotation)
     {
+        if (Spazmatism == null) return null;
         return BaseBetsyFlame.Create<SpazFlamethrower>(NPC.GetSource_FromAI(), pos, rotation - MathHelper.PiOver2, Spazmatism.Npc.damage, 4, Spazmatism.Npc.whoAmI);
     }
 
-    private Projectile NewSpazFireball(Vector2 pos, Vector2 vel)
+    private Projectile? NewSpazFireball(Vector2 pos, Vector2 vel)
     {
+        if (Spazmatism == null) return null;
         return ProjHelper.NewUnscaledProjectile(NPC.GetSource_FromAI(), pos, vel, ProjectileID.CursedFlameHostile,
             Spazmatism.Npc.damage, 3);
     }
@@ -52,20 +54,23 @@ public partial class TwinsController
         return BaseEffectProjectile.Create<SpazCircleIndicator>(NPC.GetSource_FromAI(), pos, 0f, lifetime);
     }
 
-    private Projectile NewRetDeathray(Vector2 position, float rotation, int lifetime)
+    private Projectile? NewRetDeathray(Vector2 position, float rotation, int lifetime)
     {
+        if (Retinazer == null) return null;
         return DeathrayBase.Create<RetDeathray>(NPC.GetSource_FromAI(), position, Retinazer.Npc.damage * 2, 3, rotation,
             lifetime, Retinazer.Npc.whoAmI);
     }
 
-    private Projectile NewRetSweepIndicator(Vector2 pos, float rotation, int lifetime)
+    private Projectile? NewRetSweepIndicator(Vector2 pos, float rotation, int lifetime)
     {
+        if (Retinazer == null) return null;
         return BaseSweep.Create<RetSweepIndicator>(NPC.GetSource_FromAI(), pos, rotation, lifetime,
             Retinazer.Npc.whoAmI);
     }
     
-    private Projectile NewRetLazer(Vector2 pos, Vector2 vel, float rotation, int lifetime, int anchor = -1)
+    private Projectile? NewRetLazer(Vector2 pos, Vector2 vel, float rotation, int lifetime, int anchor = -1)
     {
+        if (Retinazer == null) return null;
         return BaseLineProjectile.Create<RetLaserIndicator>(NPC.GetSource_FromAI(), pos, vel, Retinazer.Npc.damage, 3, rotation, lifetime, anchor);
     }
 }

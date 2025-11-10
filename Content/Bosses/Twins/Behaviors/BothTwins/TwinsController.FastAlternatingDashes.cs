@@ -12,6 +12,12 @@ public partial class TwinsController
     {
         attackManager.CountUp = true;
         
+        if (Spazmatism == null || Retinazer == null)
+        {
+            attackManager.CountUp = false;
+            return true;
+        }
+        
         if (attackManager.AiTimer == 0) SoundEngine.PlaySound(SoundID.ForceRoarPitched);
         
         ref var turn = ref NPC.localAI[0];

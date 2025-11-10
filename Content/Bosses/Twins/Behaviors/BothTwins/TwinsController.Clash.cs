@@ -30,6 +30,7 @@ public partial class TwinsController
         // Initialize data and teleoprt into position
         anim.AddInstantEvent(0, () =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var target = Main.player[NPC.target];
             
             anim.Data.Set(rotationKey, target.velocity.SafeNormalize(Vector2.UnitX).ToRotation());
@@ -49,6 +50,7 @@ public partial class TwinsController
         // Spin Indication
         var spinTiming = anim.AddSequencedEvent(90, (progress, frame) =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var startingRot = anim.Data.Get<float>(rotationKey);
             
             var distCurve = new PiecewiseCurve()
@@ -71,6 +73,7 @@ public partial class TwinsController
         
         anim.AddInstantEvent(spinTiming.EndTime, () =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var target = Main.player[NPC.target];
             anim.Data.Set(centerPosKey, target.Center);
             
@@ -81,6 +84,7 @@ public partial class TwinsController
         // Dash
         var clashTiming = anim.AddSequencedEvent(dashLen, (progress, frame) =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var centerPos = anim.Data.Get<Vector2>(centerPosKey);
             
             var options = new DashOptions
@@ -100,6 +104,7 @@ public partial class TwinsController
         // Clash Effects
         anim.AddInstantEvent(clashTiming.EndTime, () =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var centerPos = anim.Data.Get<Vector2>(centerPosKey);
             var rotation = anim.Data.Get<float>(rotationKey);
 
@@ -174,6 +179,8 @@ public partial class TwinsController
     
     private bool Attack_Clash(bool useSparks, bool burst)
     {
+        if (Spazmatism == null || Retinazer == null) return true;
+        
         clashAnimation ??= CreateClashAnimation();
         clashAnimation.Data.Set("useSparks", useSparks);
         clashAnimation.Data.Set("burst", burst);

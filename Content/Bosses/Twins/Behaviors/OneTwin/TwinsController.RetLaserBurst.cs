@@ -26,12 +26,13 @@ public partial class TwinsController
 
         anim.AddConstantEvent((progress, frame) =>
         {
-            if (!Spazmatism.Npc.active) return;
+            if (Spazmatism == null) return;
             Hover(Spazmatism, 10f, 0.15f);
         });
 
         anim.AddInstantEvent(0, () =>
         {
+            if (Retinazer == null) return;
             anim.Data.Set(startingAngleKey, Retinazer.Npc.rotation);
             anim.Data.Set(spawnedLasersKey, 0);
 
@@ -41,6 +42,7 @@ public partial class TwinsController
         // Indicators
         var indicatorTiming = anim.AddSequencedEvent(spinLength, (progress, frame) =>
         {
+            if (Retinazer == null) return;
             var startingAngle = anim.Data.Get<float>(startingAngleKey);
             var spawnedLasers = anim.Data.Get<int>(spawnedLasersKey);
 
@@ -58,7 +60,7 @@ public partial class TwinsController
                 anim.Data.Set(spawnedLasersKey, spawnedLasers + 1);
             }
 
-            if (!Spazmatism.Npc.active) return;
+            if (Spazmatism == null) return;
             if (frame % 15 == 0 && Main.netMode != NetmodeID.MultiplayerClient)
             {
                 NewSpazFireball(Spazmatism.Npc.Center, Spazmatism.Npc.Center.DirectionTo(Main.player[NPC.target].Center).RotatedBy(Main.rand.NextFloat(-0.5f, 0.5f)) * 10f);
@@ -71,6 +73,7 @@ public partial class TwinsController
         // Spin with the lasers
         anim.AddSequencedEvent(spinLength, (progress, frame) =>
         {
+            if (Retinazer == null) return;
             var startingAngle = anim.Data.Get<float>(startingAngleKey);
 
             var ease = EasingHelper.QuadInOut(progress);
@@ -84,6 +87,7 @@ public partial class TwinsController
 
     private bool Attack_RetLaserBurst()
     {
+        if (Retinazer == null) return true;
         laserBurstAnimation ??= CreateRetLaserBurstAnimation();
 
         if (!laserBurstAnimation.RunAnimation()) return false;

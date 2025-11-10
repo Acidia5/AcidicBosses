@@ -23,7 +23,7 @@ public partial class TwinsController
         
         anim.AddConstantEvent((progress, frame) =>
         {
-            if (Spazmatism.Npc.active)
+            if (Spazmatism != null)
             {
                 Hover(Spazmatism, 10f, 0.15f);
             }
@@ -31,18 +31,21 @@ public partial class TwinsController
 
         var posTiming = anim.AddSequencedEvent(15, (progress, frame) =>
         {
+            if (Retinazer == null) return;
             Retinazer.Npc.velocity = Vector2.Lerp(Retinazer.Npc.velocity, Vector2.Zero, progress);
             Retinazer.LookTowards(Main.player[NPC.target].Center, 0.5f);
         });
         
         anim.AddInstantEvent(posTiming.EndTime, () =>
         {
+            if (Retinazer == null) return;
             anim.Data.Set(startingAngleKey, Retinazer.Npc.rotation);
             anim.Data.Set(spawnedLasersKey, 0);
         });
 
         anim.AddSequencedEvent(15, (progress, frame) =>
         {
+            if (Retinazer == null) return;
             var startingAngle = anim.Data.Get<float>(startingAngleKey);
             
             var ease = EasingHelper.QuadIn(progress);
@@ -51,6 +54,7 @@ public partial class TwinsController
 
         var indicateTiming = anim.AddSequencedEvent(spreadLength, (progress, frame) =>
         {
+            if (Retinazer == null) return;
             var startingAngle = anim.Data.Get<float>(startingAngleKey);
             var spawnedLasers = anim.Data.Get<int>(spawnedLasersKey);
 
@@ -73,6 +77,7 @@ public partial class TwinsController
         
         anim.AddSequencedEvent(spreadLength, (progress, frame) =>
         {
+            if (Retinazer == null) return;
             var startingAngle = anim.Data.Get<float>(startingAngleKey);
             var spawnedLasers = anim.Data.Get<int>(spawnedLasersKey);
             
@@ -87,6 +92,8 @@ public partial class TwinsController
     
     private bool Attack_LaserSpread()
     {
+        if (Retinazer == null) return true;
+        
         laserSpreadAnimation ??= CreateLaserSpreadAnimation();
         if (!laserSpreadAnimation.RunAnimation()) return false;
         laserSpreadAnimation.Reset();

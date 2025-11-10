@@ -10,17 +10,17 @@ namespace AcidicBosses.Content.Bosses.Twins;
 
 public partial class TwinsController
 {
-    private void Hover(Twin twin, float speed, float accel)
+    private void Hover(Twin? twin, float speed, float accel)
     {
         var target = Main.player[NPC.target];
-        if (twin == Spazmatism)
+        if (twin == Spazmatism && Spazmatism != null)
         {
             var spazOffset = new Vector2(-200, 0);
             if (Spazmatism.Npc.Center.X > target.Center.X) spazOffset = new Vector2(200, 0);
             FlyTo(Spazmatism.Npc, target.Center + spazOffset, speed, accel);
             Spazmatism.LookTowards(target.Center, 0.05f);
         }
-        else
+        else if (Retinazer != null)
         {
             var retOffset = new Vector2(0, -250);
             if (Retinazer.Npc.Center.Y > target.Center.Y) retOffset = new Vector2(0, 250);
@@ -51,15 +51,21 @@ public partial class TwinsController
     {
         var target = Main.player[NPC.target];
         
-        var spazOffset = new Vector2(-400, 0);
-        if (Spazmatism.Npc.Center.X > target.Center.X) spazOffset = new Vector2(400, 0);
-        Teleport(Spazmatism, target.Center + spazOffset, 20);
-        Spazmatism.LookTowards(target.Center, 0.05f);
+        if (Spazmatism != null)
+        {
+            var spazOffset = new Vector2(-400, 0);
+            if (Spazmatism.Npc.Center.X > target.Center.X) spazOffset = new Vector2(400, 0);
+            Teleport(Spazmatism, target.Center + spazOffset, 20);
+            Spazmatism.LookTowards(target.Center, 0.05f);
+        }
         
-        var retOffset = new Vector2(0, -450);
-        // if (Retinazer.Npc.Center.Y > target.Center.Y) retOffset = new Vector2(0, 450);
-        Teleport(Retinazer, target.Center + retOffset, 20);
-        Retinazer.LookTowards(target.Center, 0.05f);
+        if (Retinazer != null)
+        {
+            var retOffset = new Vector2(0, -450);
+            // if (Retinazer.Npc.Center.Y > target.Center.Y) retOffset = new Vector2(0, 450);
+            Teleport(Retinazer, target.Center + retOffset, 20);
+            Retinazer.LookTowards(target.Center, 0.05f);
+        }
 
         return true;
     }

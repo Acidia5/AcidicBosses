@@ -20,8 +20,8 @@ public partial class TwinsController
         // Stop Moving
         transformAnimation.AddConstantEvent((progress, frame) =>
         {
-            Spazmatism.Npc.SimpleFlyMovement(Vector2.Zero, 0.2f);
-            Retinazer.Npc.SimpleFlyMovement(Vector2.Zero, 0.2f);
+            Spazmatism?.Npc.SimpleFlyMovement(Vector2.Zero, 0.2f);
+            Retinazer?.Npc.SimpleFlyMovement(Vector2.Zero, 0.2f);
         });
         
         // Start rumble

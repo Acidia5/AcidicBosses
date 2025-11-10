@@ -8,6 +8,8 @@ public partial class TwinsController
 {
     private bool Attack_CrossDash(int dashLength, float speed, int dashAtTime)
     {
+        if (Spazmatism == null || Retinazer == null) return true;
+        
         var dashOptions = new DashOptions
         {
             DashLength = dashLength,

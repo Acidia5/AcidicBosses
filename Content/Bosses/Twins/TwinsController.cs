@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using AcidicBosses.Common.Textures;
 using AcidicBosses.Core.StateManagement;
 using Luminance.Common.StateMachines;
+using Luminance.Common.Utilities;
 using Luminance.Common.VerletIntergration;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
@@ -36,10 +38,12 @@ public partial class TwinsController : AcidicNPC
         set => NPC.ai[1] = value;
     }
 
-    private Retinazer Retinazer => Main.npc[retId].GetGlobalNPC<Retinazer>();
-    private Spazmatism Spazmatism => Main.npc[spazId].GetGlobalNPC<Spazmatism>();
+    private bool connectedTwins = false;
 
-    private float AverageLifePercent => (Spazmatism.Npc.GetLifePercent() + Retinazer.Npc.GetLifePercent()) / 2f;
+    private Retinazer? Retinazer => GetRet();
+    private Spazmatism? Spazmatism => GetSpaz();
+
+    private float AverageLifePercent => ((Spazmatism?.Npc.GetLifePercent() ?? 0f) + (Retinazer?.Npc.GetLifePercent() ?? 0f)) / 2f;
 
     // Only exists on client
     private List<VerletSegment> connectionSegments = [];
@@ -48,8 +52,7 @@ public partial class TwinsController : AcidicNPC
         ConserveEnergy = true
     };
     
-    private Texture2D connectionTex = TextureAssets.Chain12.Value; // The sprite is oriented vertically
-    private Asset<Texture2D> connectionTexAsset = TextureAssets.Chain12;
+    private Asset<Texture2D> connectionTex = TextureAssets.Chain12;
     private int connectionLength = 500;
 
     public override void SetStaticDefaults()
@@ -103,6 +106,20 @@ public partial class TwinsController : AcidicNPC
 
     public override void AcidAI()
     {
+        if (!connectedTwins)
+        {
+            if (Spazmatism == null || Retinazer == null)
+            {
+                // Wait for the connection
+                return;
+            }
+            else
+            {
+                connectedTwins = true;
+            }
+        }
+        
+        
         if (CheckTwinsDead())
         {
             NPC.active = false;
@@ -135,12 +152,12 @@ public partial class TwinsController : AcidicNPC
             }
         }
 
-        if (!Spazmatism.Npc.active && !changedState)
+        if (Spazmatism == null && !changedState)
         {
             phaseTracker.ChangeState(PhaseSoloRet);
             changedState = true;
         }
-        if (!Retinazer.Npc.active && !changedState)
+        if (Retinazer == null && !changedState)
         {
             phaseTracker.ChangeState(PhaseSoloSpaz);
             changedState = true;
@@ -153,21 +170,24 @@ public partial class TwinsController : AcidicNPC
 
     private bool CheckTwinsDead()
     {
-        return !Spazmatism.Npc.active && !Retinazer.Npc.active;
+        return Spazmatism == null && Retinazer == null;
     }
 
     private void Flee()
     {
-        Spazmatism.Npc.active = false;
-        Retinazer.Npc.active = false;
+        // No setting with conditionals in this version of C# :(
+        if (Spazmatism != null) Spazmatism.Npc.active = false;
+        if (Retinazer != null) Retinazer.Npc.active = false;
         NPC.active = false;
     }
 
     private void FillTether()
     {
         connectionSegments.Clear(); // Just to be safe
+
+        if (Retinazer is null || Spazmatism is null) return;
         
-        for (var i = 0; i < connectionLength; i += connectionTex.Height)
+        for (var i = 0; i < connectionLength; i += connectionTex.Value.Height)
         {
             connectionSegments.Add(
                 new VerletSegment(new Vector2(Spazmatism.Npc.Center.X + i, Spazmatism.Npc.Center.Y), Vector2.Zero));
@@ -175,27 +195,6 @@ public partial class TwinsController : AcidicNPC
             
         // Remove one segment
         connectionSegments.RemoveAt(0);
-    }
-
-    /// <summary>
-    /// Simulates the two eyes being connected together by a rope
-    /// </summary>
-    private void SimulateTether(float retMass, float spazMass)
-    {
-        var distance = Retinazer.Npc.Center.Distance(Spazmatism.Npc.Center);
-        if (distance >= connectionLength)
-        {
-            // Each eye contributes half of their velocity to the other because momentum
-            var totalMass = retMass + spazMass;
-            var origRetVel = Retinazer.Npc.velocity;
-            var origSpazVel = Spazmatism.Npc.velocity;
-            Retinazer.Npc.velocity = 
-                ((origRetVel * retMass) +
-                 Retinazer.Npc.Center.DirectionTo(Spazmatism.Npc.Center) * (origSpazVel.Length() * spazMass)) / totalMass;
-            Spazmatism.Npc.velocity =
-                (origSpazVel * spazMass +
-                 Spazmatism.Npc.Center.DirectionTo(Retinazer.Npc.Center) * (origRetVel.Length() * retMass)) / totalMass;
-        }
     }
 
     #endregion
@@ -217,15 +216,19 @@ public partial class TwinsController : AcidicNPC
         // Don't draw on the first frame to fix null errors
         if (IsFirstFrame) return false;
         
+        if (!ShouldDrawTether()) return false;
+        
+        // Since ShouldDrawTether() inherently checks null
+        Debug.Assert(Spazmatism != null, nameof(Spazmatism) + " != null");
+        Debug.Assert(Retinazer != null, nameof(Retinazer) + " != null");
+        
         // Yes I'm running this every frame. If I don't the rope is jittery.
         // You can't stop me
         connectionSegments = VerletSimulations.RopeVerletSimulation(connectionSegments, Retinazer.Npc.Center,
             connectionLength * 0.75f, connectionSimSettings, Spazmatism.Npc.Center);
-
-        if (!ShouldDrawTether()) return false;
         
         var renderSettings = new PrimitiveSettings(
-            _ => connectionTex.Width / 2f,
+            _ => connectionTex.Value.Width / 2f,
             p =>
             {
                 var index = (int) (p * connectionSegments.Count);
@@ -234,7 +237,7 @@ public partial class TwinsController : AcidicNPC
             },
             Shader: ShaderManager.GetShader("AcidicBosses.Rope")
         );
-        renderSettings.Shader.SetTexture(connectionTexAsset, 1, SamplerState.PointClamp);
+        renderSettings.Shader.SetTexture(connectionTex, 1, SamplerState.PointClamp);
         renderSettings.Shader.TrySetParameter("segments", connectionSegments.Count);
     
         PrimitiveRenderer.RenderTrail(connectionSegments.Select(s => s.Position), renderSettings);
@@ -246,23 +249,37 @@ public partial class TwinsController : AcidicNPC
 
     private bool ShouldDrawTether()
     {
-        if (!Retinazer.Npc.active || !Spazmatism.Npc.active) return false;
-
-        return true;
+        return Retinazer != null && Spazmatism != null;
     }
 
     // Returns null when both are alive
     private Twin? AliveTwin()
     {
-        if (Spazmatism.Npc.active && Retinazer.Npc.active) return null;
-        if (Spazmatism.Npc.active) return Spazmatism;
+        if (Retinazer != null && Spazmatism != null) return null;
+        if (Spazmatism != null) return Spazmatism;
         return Retinazer;
     }
 
     private void DoBothTwins(Action<Twin> action)
     {
-        action(Spazmatism);
-        action(Retinazer);
+        if (Spazmatism != null) action(Spazmatism);
+        if (Retinazer != null) action(Retinazer);
+    }
+
+    private Retinazer? GetRet()
+    {
+        var npc = Main.npc[retId];
+        if (!npc.active) return null;
+
+        return npc.TryGetGlobalNPC<Retinazer>(out var ret) ? ret : null;
+    }
+    
+    private Spazmatism? GetSpaz()
+    {
+        var npc = Main.npc[spazId];
+        if (!npc.active) return null;
+
+        return npc.TryGetGlobalNPC<Spazmatism>(out var spaz) ? spaz : null;
     }
 
     public static int Link(NPC npc)

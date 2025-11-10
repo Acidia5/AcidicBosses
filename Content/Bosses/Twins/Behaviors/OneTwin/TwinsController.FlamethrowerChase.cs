@@ -8,6 +8,12 @@ public partial class TwinsController
 {
     private bool Attack_FlamethrowerChase()
     {
+        if (Spazmatism == null)
+        {
+            attackManager.CountUp = false;
+            return true;
+        }
+        
         attackManager.CountUp = true;
 
         var target = Main.player[NPC.target].Center;

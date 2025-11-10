@@ -16,6 +16,7 @@ public partial class TwinsController
 
     private void CreateLaserSweepAnimation()
     {
+        if (Retinazer == null) return;
         var npc = Retinazer.Npc;
 
         const int indicateLength = 90;
@@ -73,7 +74,7 @@ public partial class TwinsController
                 }
             }.Spawn();
             
-            if (Spazmatism.Npc.active)
+            if (Spazmatism != null)
             {
                 Hover(Spazmatism, 10f, 0.15f);
 
@@ -107,7 +108,7 @@ public partial class TwinsController
         // First Spaz Dash
         laserSweepAnimation.AddTimedEvent(indicateTiming.EndTime, indicateTiming.EndTime + 60, (progress, frame) =>
         {
-            if (!Spazmatism.Npc.active) return;
+            if (Spazmatism == null) return;
             
             var dashSettings = new DashOptions
             {
@@ -125,14 +126,14 @@ public partial class TwinsController
         // Reset for second dash
         laserSweepAnimation.AddInstantEvent(indicateTiming.EndTime + 60, () =>
         {
-            if (!Spazmatism.Npc.active) return;
+            if (Spazmatism == null) return;
             Spazmatism.AttackManager.Reset();
         });
         
         // Second Spaz dash
         laserSweepAnimation.AddTimedEvent(indicateTiming.EndTime + 60, rayTiming.EndTime, (progress, frame) =>
         {
-            if (!Spazmatism.Npc.active) return;
+            if (Spazmatism == null) return;
             var dashSettings = new DashOptions
             {
                 DashLength = 30,
@@ -149,13 +150,14 @@ public partial class TwinsController
         // Reset after second dash
         laserSweepAnimation.AddInstantEvent(rayTiming.EndTime, () =>
         {
-            if (!Spazmatism.Npc.active) return;
+            if (Spazmatism == null) return;
             Spazmatism.AttackManager.Reset();
         });
     }
     
     private bool Attack_SweepingLaser()
     {
+        if (Retinazer == null) return true;
         if (laserSweepAnimation is null) CreateLaserSweepAnimation();
         if (!laserSweepAnimation.RunAnimation()) return false;
         laserSweepAnimation.Reset();

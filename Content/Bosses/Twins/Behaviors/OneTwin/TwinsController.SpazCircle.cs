@@ -31,6 +31,7 @@ public partial class TwinsController
         // Teleport into position and start telegraph
         anim.AddInstantEvent(0, () =>
         {
+            if (Spazmatism == null) return;
             var target = Main.player[NPC.target].Center;
             
             anim.Data.Set(targetPosKey, target);
@@ -79,6 +80,7 @@ public partial class TwinsController
         // Do a spin for visual flair
         var indicateTiming = anim.AddSequencedEvent(indicationLength, (progress, frame) =>
         {
+            if (Spazmatism == null) return;
             var spinCurve = new PiecewiseCurve()
                 .Add(MoreEasingCurves.Back, EasingType.Out, MathHelper.TwoPi, 1f);
 
@@ -87,6 +89,7 @@ public partial class TwinsController
         
         anim.AddInstantEvent(indicateTiming.EndTime, () =>
         {
+            if (Spazmatism == null) return;
             anim.Data.Set(fireballsSpawnedKey, 0);
             Spazmatism.Npc.rotation = 0f;
             SoundEngine.PlaySound(SoundID.Item89, Spazmatism.Npc.Center);
@@ -95,6 +98,7 @@ public partial class TwinsController
         // Circle around the player
         var circleTiming = anim.AddSequencedEvent(60, (progress, frame) =>
         {
+            if (Spazmatism == null) return;
             var target = anim.Data.Get<Vector2>(targetPosKey);
             var fireballsSpawned = anim.Data.Get<int>(fireballsSpawnedKey);
             
@@ -125,6 +129,7 @@ public partial class TwinsController
     
     private bool Attack_SpazCircle()
     {
+        if (Spazmatism == null) return true;
         if (SpazCircleAnimation is null) CreateSpazCircleAnimation();
         if (!SpazCircleAnimation.RunAnimation()) return false;
         SpazCircleAnimation.Reset();
