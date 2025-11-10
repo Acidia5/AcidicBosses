@@ -15,6 +15,8 @@ public class QueenSlimeFakeAfterimage : FakeAfterimage
     public QueenSlimeFakeAfterimage(Vector2 startPos, Vector2 endPos, NPC toCopy, int images = 20) : base(startPos,
         endPos, toCopy, images)
     {
+        if (!AcidUtils.IsClient()) return;
+        
         var texture = TextureAssets.Npc[ToCopy.type].Value;
         var f = toCopy.GetGlobalNPC<QueenSlime>().Frame;
         var frameCount = Main.npcFrameCount[ToCopy.type];

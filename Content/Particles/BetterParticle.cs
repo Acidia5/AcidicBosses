@@ -4,6 +4,7 @@ using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.ID;
 
 namespace AcidicBosses.Content.Particles;
 
@@ -25,6 +26,10 @@ public abstract class BetterParticle : Particle
     
     public BetterParticle(Vector2 position, Vector2 velocity, float rotation, Color color, int lifetime)
     {
+        // For some ungodly reason Lighting.GetColor freaks out on the server is kills the boss that created the particle
+        // Best practice would be to not ever make particles on the server, but I don't care.
+        if (Main.netMode == NetmodeID.Server) return;
+        
         Position = position;
         Velocity = velocity;
         Rotation = rotation;

@@ -1,5 +1,6 @@
 using AcidicBosses.Common;
 using AcidicBosses.Common.Effects;
+using AcidicBosses.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
@@ -227,6 +228,15 @@ public partial class QueenSlime
 
     private Vector2 GetCrownPos()
     {
+        if (!AcidUtils.IsClient())
+        {
+            // Since we can't rely on the texture on a dedicated server
+            var crownHeight = 56f;
+            var hardCodedPos = new Vector2(Npc.Center.X, Npc.Top.Y - crownHeight + 44f);
+            hardCodedPos = CrownOffset(hardCodedPos);
+            return hardCodedPos;
+        }
+        
         var crownTex = TextureAssets.Extra[ExtrasID.QueenSlimeCrown].Value;
         var frame = crownTex.Frame();
         var pos = new Vector2(Npc.Center.X, Npc.Top.Y - (float)frame.Bottom + 44f);

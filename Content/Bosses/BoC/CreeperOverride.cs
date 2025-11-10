@@ -60,8 +60,7 @@ public class CreeperOverride : AcidicNPCOverride
         ConserveEnergy = true
     };
     
-    private Texture2D connectionTex = TextureAssets.Chain12.Value; // The sprite is oriented vertically
-    private Asset<Texture2D> connectionTexAsset = TextureAssets.Chain12;
+    private Asset<Texture2D> connectionTex = TextureAssets.Chain12;
     private int connectionLength = 500;
 
     public override void SetStaticDefaults()
@@ -133,7 +132,7 @@ public class CreeperOverride : AcidicNPCOverride
     {
         connectionSegments.Clear(); // Just to be safe
         
-        for (var i = 0; i < connectionLength; i += connectionTex.Height)
+        for (var i = 0; i < connectionLength; i += connectionTex.Value.Height)
         {
             connectionSegments.Add(
                 new VerletSegment(new Vector2(Npc.Center.X + i, Npc.Center.Y), Vector2.Zero));
@@ -340,7 +339,7 @@ public class CreeperOverride : AcidicNPCOverride
             connectionLength * 0.75f, connectionSimSettings, Npc.Center);
         
         var renderSettings = new PrimitiveSettings(
-            _ => connectionTex.Width / 2f,
+            _ => connectionTex.Value.Width / 2f,
             p =>
             {
                 var index = (int) (p * connectionSegments.Count);
@@ -351,7 +350,7 @@ public class CreeperOverride : AcidicNPCOverride
             },
             Shader: ShaderManager.GetShader("AcidicBosses.Rope")
         );
-        renderSettings.Shader.SetTexture(connectionTexAsset, 1, SamplerState.PointClamp);
+        renderSettings.Shader.SetTexture(connectionTex, 1, SamplerState.PointClamp);
         renderSettings.Shader.TrySetParameter("segments", connectionSegments.Count);
     
         PrimitiveRenderer.RenderTrail(connectionSegments.Select(s => s.Position), renderSettings);
