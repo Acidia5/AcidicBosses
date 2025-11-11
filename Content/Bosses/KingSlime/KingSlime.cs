@@ -6,11 +6,15 @@ using AcidicBosses.Common.Configs;
 using AcidicBosses.Common.Effects;
 using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.Particles.Animated;
+using AcidicBosses.Content.ProjectileBases;
+using AcidicBosses.Core.Animation;
 using AcidicBosses.Helpers;
+using Luminance.Common.Easings;
 using Luminance.Common.Utilities;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Graphics;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -27,6 +31,16 @@ public class KingSlime : AcidicNPCOverride
     protected override int OverriddenNpc => NPCID.KingSlime;
 
     protected override bool BossEnabled => BossToggleConfig.Get().EnableKingSlime;
+    
+    private float squash = 0f;
+    private Vector2 Scale => new Vector2(Npc.scale + squash * Npc.scale, Npc.scale - squash * Npc.scale);
+    
+    private Vector2 oldVel = Vector2.UnitY;
+    private Vector2 oldOldVel = Vector2.UnitY;
+
+    private bool hideStuff = false;
+    private float crownRot = 0f;
+    private bool doIdleBounce = true;
 
     #region Phases
     
@@ -171,7 +185,7 @@ public class KingSlime : AcidicNPCOverride
         // if (npc.velocity.Y > 0) isGrounded = false;
         
         // Land
-        if (!isGrounded && npc.velocity.Y == 0)
+        if (!isGrounded && Npc.velocity.Y == 0f && oldVel.Y >= 0)
         {
             // Smoke puffs
             var puff = new WideGroundPuffParticle(npc.Bottom, Vector2.Zero, 0f, Color.White, 30);
@@ -191,14 +205,69 @@ public class KingSlime : AcidicNPCOverride
             {
                 var ground = new Point(x, yTile);
                 WorldGen.KillTile(ground.X, ground.Y, true, true);
+
+                for (var i = 0; i < 8; i++)
+                {
+                    var xVel = Main.rand.NextFloat(-1f, 1f);
+                    var t = DustID.Water;
+                    if (CurrentPhase == PhaseState.Desperation) t = DustID.Water_BloodMoon;
+                    Dust.NewDustDirect(
+                        ground.ToWorldCoordinates() - new Vector2(0, 16f), 
+                        16, 16, 
+                        t, 
+                        xVel, -oldOldVel.Y * 0.5f,
+                        Scale: 1.5f
+                    );
+                }
             }
 
             ScreenShakeSystem.StartShakeAtPoint(npc.Bottom, npc.scale * 1.5f);
             SoundEngine.PlaySound(SoundID.Item167 with { Pitch = 1.5f - npc.scale }, npc.Bottom);
 
             isGrounded = true;
-            npc.velocity.X = 0;
+
+            var force = oldOldVel.Y;
+            var trueForce = force;
+            force = MathHelper.Clamp(force, 0f, 15f);
+            var forceLerp = force / 15f;
+
+            squash += forceLerp * MathHelper.Lerp(0.7f, 0.5f, Npc.GetLifePercent());
+            Npc.velocity.X = 0f;
         }
+        
+        var squashRecovery = MathHelper.Lerp(0.02f, 0.05f, Npc.GetLifePercent());
+        var squashGoal = MathHelper.Lerp(-0.05f, 0.05f, Utilities.InverseLerp(-10f, 10f, Npc.velocity.Y));
+        squash = MathHelper.Lerp(squash, squashGoal, squashRecovery);
+        oldOldVel = oldVel;
+        oldVel = Npc.velocity;
+        
+        if (CurrentPhase == PhaseState.Two && Main.rand.NextBool(0.5f))
+        {
+            var offset = Main.rand.NextVector2Circular(Npc.width * 1.5f * 0.5f, Npc.height * 0.5f);
+            Dust.NewDust(
+                Npc.Center + offset,
+                0,
+                0,
+                DustID.Water,
+                Scale: 1.5f
+            );
+        }
+
+        if (CurrentPhase == PhaseState.Desperation)
+        {
+            var offset = Main.rand.NextVector2Circular(Npc.width * 1.5f * 0.5f, Npc.height * 0.5f);
+            Dust.NewDust(
+                Npc.Center + offset,
+                0,
+                0,
+                DustID.Water_BloodMoon,
+                Scale: 1.5f
+            );
+        }
+        
+        var lerp = Utils.GetLerpValue(-20, 20, Npc.velocity.X, true);
+        var goal = MathHelper.Lerp(MathHelper.PiOver4, -MathHelper.PiOver4, lerp);
+        crownRot = MathHelper.Lerp(crownRot, goal, 0.2f);
 
         // Update Timer
         if (AiTimer > 0 && !BypassActionTimer && isGrounded)
@@ -467,6 +536,15 @@ public class KingSlime : AcidicNPCOverride
     private void Phase_Transition1(NPC npc)
     {
         BypassActionTimer = true;
+        
+        var offset = Main.rand.NextVector2Circular(Npc.width * 1.5f * 0.5f, Npc.height * 0.5f);
+        Dust.NewDust(
+            Npc.Center + offset,
+            0,
+            0,
+            DustID.Water,
+            Scale: 1.5f
+        );
 
         switch (AiTimer)
         {
@@ -486,13 +564,14 @@ public class KingSlime : AcidicNPCOverride
                 {
                     for (var i = 0; i < 100; i++)
                     {
-                        var vel = Main.rand.NextVector2CircularEdge(64, 64);
+                        var vel = Main.rand.NextVector2CircularEdge(20, 20);
                         var dust = Dust.NewDust(
                             npc.Center + (vel / 2),
-                            64, 64,
+                            0, 0,
                             DustID.Water,
                             vel.X,
-                            vel.Y
+                            vel.Y,
+                            Scale: 1.5f
                         );
 
                         Main.dust[dust].noGravity = true;
@@ -515,6 +594,15 @@ public class KingSlime : AcidicNPCOverride
     private void Phase_Transition2(NPC npc)
     {
         BypassActionTimer = true;
+        
+        var offset = Main.rand.NextVector2Circular(Npc.width * 1.5f * 0.5f, Npc.height * 0.5f);
+        Dust.NewDust(
+            Npc.Center + offset,
+            0,
+            0,
+            DustID.Water_BloodMoon,
+            Scale: 1.5f
+        );
 
         switch (AiTimer)
         {
@@ -553,12 +641,16 @@ public class KingSlime : AcidicNPCOverride
 
         npc.velocity = new Vector2(horizontalVelocity * direction, -jumpVelocity);
         isGrounded = false;
+
+        var amount = MathHelper.Lerp(-0.8f, -0.5f, Npc.GetLifePercent());
+        squash = MathHelper.Lerp(0f, amount, Utils.GetLerpValue(0f, 15f, npc.velocity.Length(), true));
     }
 
     private void Attack_Burst(NPC npc, int projCount)
     {
         // Burst Attack
         SoundEngine.PlaySound(SoundID.SplashWeak, npc.Center);
+        squash = MathHelper.Lerp(0.6f, 0.2f, Npc.GetLifePercent());
 
         // Create the projectiles
         if (Main.netMode == NetmodeID.MultiplayerClient) return;
@@ -580,75 +672,237 @@ public class KingSlime : AcidicNPCOverride
         }
     }
 
-    private void Attack_Teleport(NPC npc, out bool done)
+    private AcidAnimation? teleportAnimation;
+
+    private void PrepareTeleportAnimation()
     {
-        void IndicationDust()
+        var anim = new AcidAnimation();
+
+        // Start Indication
+        anim.AddSequencedEvent(60, (progress, frame) =>
         {
-            for (var i = 0; i < 25; i++)
+            teleportDestination = Main.player[Npc.target].position;
+               
+            teleportDestination.Y -= 256;
+
+            // Check if player is under a block
+            var ground = Utilities.FindGroundVertical(teleportDestination.ToTileCoordinates()).ToWorldCoordinates();
+            if (ground.Y < Main.player[Npc.target].position.Y)
             {
-                var offset = Main.rand.NextVector2Circular(npc.height, npc.height);
-                Dust.NewDust(
-                    teleportDestination + offset,
-                    32, 32,
-                    DustID.Water
+                // Teleport on top of the player otherwise
+                teleportDestination.Y = Main.player[Npc.target].position.Y;
+            }
+            
+            IndicateDust();
+            DissolveDust();
+        });
+        
+        // Shrink
+        anim.AddSequencedEvent(30, (progress, frame) =>
+        {
+            var shrinkT = EasingHelper.QuadIn(progress);
+            ChangeScale(Npc, MathHelper.Lerp(targetScale, 0f, shrinkT));
+            DissolveDust();
+        });
+
+        anim.AddSequencedEvent(15, (progress, frame) =>
+        {
+            if (frame == 0)
+            {
+                hideStuff = true;
+                
+                // Crown
+                Gore.NewGore(
+                    Npc.GetSource_FromAI(),
+                    Npc.Center,
+                    Vector2.Zero,
+                    GoreID.KingSlimeCrown
                 );
+
+                // Core movement
+                var from = Npc.Center;
+                var to = teleportDestination;
+                new SharpTearParticle(
+                    Npc.Center,
+                    Vector2.Zero,
+                    from.DirectionTo(to).ToRotation() + MathHelper.PiOver2,
+                    Color.Red,
+                    15
+                )
+                {
+                    IgnoreLighting = false,
+                    OnUpdate = particle =>
+                    {
+                        // Move to teleport
+                        var ease = EasingHelper.QuadOut(particle.LifetimeRatio);
+                        particle.Position = Vector2.Lerp(from, to, ease);
+                        
+                        // Subtle scaling
+                        var scaleEase = new PiecewiseCurve()
+                            .Add(EasingCurves.Quadratic, EasingType.In, 1f, 0.25f)
+                            .Add(EasingCurves.Linear, EasingType.In, 1f, 0.75f)
+                            .Add(EasingCurves.Quadratic, EasingType.Out, 0f, 1f);
+                        particle.Scale = scaleEase.Evaluate(particle.LifetimeRatio) * 4f * Vector2.One;
+                        
+                        // Fairy dust trail
+                        for (var i = 0; i < 5; i++)
+                        {
+                            Dust.NewDust(
+                                particle.Position,
+                                0,
+                                0,
+                                DustID.PinkFairy
+                            );
+                        }
+                    }
+                }.Spawn();
+
+                // Star
+                var scaleCurve = new PiecewiseCurve()
+                    .Add(EasingCurves.Quadratic, EasingType.Out, 0f, 1f, 4f);
+                new GlowStarParticle(
+                    Npc.Center,
+                    Vector2.Zero,
+                    0,
+                    Color.White,
+                    30
+                )
+                {
+                    IgnoreLighting = true,
+                    OnUpdate = p =>
+                    {
+                        var scale = scaleCurve.Evaluate(p.LifetimeRatio);
+                        p.Scale = Vector2.One * scale;
+                        p.AngularVelocity = p.LifetimeRatio * MathHelper.Pi / 16f;
+                    }
+                }.Spawn();
+            }
+        });
+
+        // Grow
+        var grow = anim.AddSequencedEvent(15, (progress, frame) =>
+        {
+            hideStuff = false;
+            
+            Npc.Center = teleportDestination;
+            var growT = EasingHelper.BackOut(progress);
+            ChangeScale(Npc, MathHelper.Lerp(0f, targetScale, growT));
+            
+            if (frame == 0)
+            {
+                for (var i = 0; i < 50; i++)
+                {
+                    var vel = Main.rand.NextVector2Circular(10f, 10f);
+                    var t = DustID.Water;
+                    if (CurrentPhase == PhaseState.Desperation) t = DustID.Water_BloodMoon;
+                    Dust.NewDustDirect(
+                        Npc.Center,
+                        0, 0,
+                        t,
+                        vel.X,
+                        vel.Y,
+                        Scale: 1.5f
+                    );
+                }
+                
+                for (var i = 0; i < 10; i++)
+                {
+                    var vel = Main.rand.NextVector2Circular(5f, 5f);
+                    Dust.NewDust(
+                        Npc.Center,
+                        0, 0,
+                        DustID.PinkFairy,
+                        vel.X,
+                        vel.Y
+                    );
+                }
+            }
+        });
+        
+        // Finalize Teleport
+        anim.AddInstantEvent(grow.EndTime, () =>
+        {
+            Npc.Center = teleportDestination;
+            Npc.velocity.Y = 10f;
+            isGrounded = false;
+            ChangeScale(Npc, targetScale);
+        });
+
+        teleportAnimation = anim;
+        return;
+        
+        void IndicateDust()
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                var offset = Main.rand.NextVector2Circular(Npc.width * 1.5f * 0.5f, Npc.height * 0.5f);
+                var pos = teleportDestination + offset;
+                var vel = pos.Distance(teleportDestination) / 60f * pos.DirectionTo(teleportDestination);
+                
+                var d = Dust.NewDustPerfect(
+                    pos,
+                    DustID.BlueFairy,
+                    vel,
+                    Scale: 1.5f
+                );
+
+                d.noGravity = true;
             }
         }
 
-        switch (AiTimer)
+        void DissolveDust()
         {
-            case >= 0 and < 60: // Indicate While Tracking
-                teleportDestination = Main.player[npc.target].position;
-               
-                teleportDestination.Y -= 256;
-
-                // Check if player is under a block
-                var ground = Utilities.FindGroundVertical(teleportDestination.ToTileCoordinates()).ToWorldCoordinates();
-                if (ground.Y < Main.player[npc.target].position.Y)
-                {
-                    // Teleport on top of the player otherwise
-                    teleportDestination.Y = Main.player[npc.target].position.Y;
-                }
-                
-                IndicationDust();
-                break;
-            case >= 60 and < 90: // Keep indicating while shrinking
-                var shrinkT = (AiTimer - 60f) / (90f - 60f);
-                shrinkT = EasingHelper.QuadOut(shrinkT);
-                ChangeScale(npc, MathHelper.Lerp(targetScale, 0f, shrinkT));
-                
-                IndicationDust();
-                break;
-            case >= 90 and < 120: // Grow at the indicated position
-                if (AiTimer == 90)
-                    Gore.NewGore(npc.GetSource_FromAI(), npc.Center, Vector2.Zero, GoreID.KingSlimeCrown);
-
-                npc.Center = teleportDestination;
-                var growT = (AiTimer - 90f) / (120f - 90f);
-                growT = EasingHelper.QuadIn(growT);
-                ChangeScale(npc, MathHelper.Lerp(0f, targetScale, growT));
-                IndicationDust();
-                break;
-            default: // Finish the teleport
-                npc.Center = teleportDestination;
-                npc.velocity.Y = 10f;
-                isGrounded = false;
-                ChangeScale(npc, targetScale);
-                done = true;
-                return;
+            for (var i = 0; i < 5; i++)
+            {
+                var offset = Main.rand.NextVector2Circular(Npc.width * 1.5f * 0.5f, Npc.height * 0.5f);
+                var t = DustID.Water;
+                if (CurrentPhase == PhaseState.Desperation) t = DustID.Water_BloodMoon;
+                Dust.NewDust(
+                    Npc.Center + offset,
+                    0,
+                    0,
+                    t,
+                    Scale: 1.5f
+                );
+            }
         }
+    }
 
+    private void Attack_Teleport(NPC npc, out bool done)
+    {
         done = false;
-        AiTimer++;
+        if (teleportAnimation == null) PrepareTeleportAnimation();
+        if (teleportAnimation!.RunAnimation())
+        {
+            done = true;
+            teleportAnimation.Reset();
+        }
     }
 
     private void Attack_Summon(NPC npc)
     {
         SoundEngine.PlaySound(SoundID.Item95, npc.Center);
 
-        var puff = new SmallPuffParticle(npc.Top, Vector2.Zero, 0f, Color.Blue, 30);
+        var puff = new SmallPuffParticle(
+            npc.Top,
+            Vector2.Zero, 
+            0f, Color.Blue,
+            30
+        );
         puff.Opacity = 0.25f;
         puff.Spawn();
+        
+        for (var i = 0; i < 10; i++)
+        {
+            Dust.NewDust(
+                Npc.Top,
+                0, 0,
+                DustID.BlueFairy,
+                Scale: 1.5f
+            );
+        }
+
+        squash = MathHelper.Lerp(0.6f, 0.2f, Npc.GetLifePercent());
 
         // Only spawn from a server
         if (Main.netMode == NetmodeID.MultiplayerClient) return;
@@ -672,6 +926,8 @@ public class KingSlime : AcidicNPCOverride
         switch (AiTimer)
         {
             case 0:
+                doIdleBounce = false;
+                squash = 0.1f;
                 SoundEngine.PlaySound(SoundID.Item8, npc.Center);
                 new GatherEnergyParticle(npc.Top, Vector2.Zero, 0f, Color.Red, 60).Spawn();
 
@@ -684,6 +940,7 @@ public class KingSlime : AcidicNPCOverride
                 break;
             case 180:
                 done = true;
+                doIdleBounce = true;
                 return;
         }
 
@@ -694,6 +951,7 @@ public class KingSlime : AcidicNPCOverride
     private void Attack_CrownLaserCircle(NPC npc, out bool done, int projCount)
     {
         const int length = 30;
+        doIdleBounce = false;
         if (AiTimer == 0) new GatherEnergyParticle(npc.Top, Vector2.Zero, 0f, Color.Red, 60).Spawn();
         
         switch (AiTimer)
@@ -701,6 +959,7 @@ public class KingSlime : AcidicNPCOverride
             case >= 0 and < length:
                 if (AiTimer % (length / projCount) == 0)
                 {
+                    squash = 0.1f;
                     SoundEngine.PlaySound(SoundID.Item8, npc.Center);
 
                     if (Main.netMode == NetmodeID.MultiplayerClient) break;
@@ -716,6 +975,7 @@ public class KingSlime : AcidicNPCOverride
                 break;
             case 180:
                 done = true;
+                doIdleBounce = true;
                 return;
         }
 
@@ -740,7 +1000,7 @@ public class KingSlime : AcidicNPCOverride
 
     public override bool AcidicDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color lightColor)
     {
-        DrawNinja(npc, spriteBatch, screenPos, lightColor);
+        if (!hideStuff) DrawNinja(npc, spriteBatch, screenPos, lightColor);
         
         if (CurrentPhase is PhaseState.Desperation or PhaseState.Transition2)
         {
@@ -755,7 +1015,7 @@ public class KingSlime : AcidicNPCOverride
             spriteBatch.ExitShader();
         }
         
-        DrawCrown(npc, spriteBatch, screenPos, lightColor);
+        if (!hideStuff) DrawCrown(npc, spriteBatch, screenPos, lightColor);
         
         return false;
     }
@@ -785,47 +1045,55 @@ public class KingSlime : AcidicNPCOverride
 
     private void DrawSlime(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color lightColor)
     {
-        var drawPos = npc.Center - screenPos + Vector2.UnitY * npc.gfxOffY;
-        drawPos.Y -= 8f * npc.scale; // KS is in the ground unless I do this for some ungodly reason
         var texAsset = TextureAssets.Npc[npc.type];
         var texture = texAsset.Value;
-        var origin = npc.frame.Size() * 0.5f;
+        
+        var drawPos = npc.Bottom - screenPos + Vector2.UnitY * npc.gfxOffY;
+        drawPos.Y += 4f * Scale.Y;
+        
+        var origin = npc.frame.Size() * new Vector2(0.5f, 1f);
 
         spriteBatch.Draw(
             texture, drawPos,
             npc.frame, npc.GetAlpha(lightColor),
-            npc.rotation, origin, npc.scale,
+            npc.rotation, origin, Scale,
             SpriteEffects.None, 0f);
     }
 
     private void DrawCrown(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color lightColor)
     {
-        Texture2D value87 = TextureAssets.Extra[39].Value;
-        Vector2 center3 = npc.Center;
-        float num154 = 0f;
-        switch (npc.frame.Y / (TextureAssets.Npc[npc.type].Value.Height / Main.npcFrameCount[npc.type]))
+        var crownTex = TextureAssets.Extra[ExtrasID.KingSlimeCrown].Value;
+        var pos = npc.Bottom;
+        var offset = 0f;
+        if (doIdleBounce)
         {
-            case 0:
-                num154 = 2f;
-                break;
-            case 1:
-                num154 = -6f;
-                break;
-            case 2:
-                num154 = 2f;
-                break;
-            case 3:
-                num154 = 10f;
-                break;
-            case 4:
-                num154 = 2f;
-                break;
-            case 5:
-                num154 = 0f;
-                break;
+            switch (npc.frame.Y / (TextureAssets.Npc[npc.type].Value.Height / Main.npcFrameCount[npc.type]))
+            {
+                case 0:
+                    offset = 2f;
+                    break;
+                case 1:
+                    offset = -6f;
+                    break;
+                case 2:
+                    offset = 2f;
+                    break;
+                case 3:
+                    offset = 10f;
+                    break;
+                case 4:
+                    offset = 2f;
+                    break;
+                case 5:
+                    offset = 0f;
+                    break;
+            }
         }
-        center3.Y += npc.gfxOffY - (70f - num154) * npc.scale;
-        spriteBatch.Draw(value87, center3 - screenPos, null, lightColor, 0f, value87.Size() / 2f, 1f, SpriteEffects.None, 0f);
+        
+        pos.Y += npc.gfxOffY - (110f - offset) * Scale.Y;
+        pos.X += crownRot * MathHelper.Lerp(50f, 100f, Npc.GetLifePercent());
+        
+        spriteBatch.Draw(crownTex, pos - screenPos, null, lightColor * Npc.Opacity, crownRot, crownTex.Size() / 2f, 1f, SpriteEffects.None, 0f);
 
     }
 

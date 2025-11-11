@@ -72,11 +72,11 @@ public partial class BoC : AcidicNPCOverride
     {
         // Flee when no players are alive or out of crimson
         var target = Main.player[npc.target];
-        if ((IsTargetGone(npc) || !target.ZoneCrimson) && !isFleeing)
+        if ((IsTargetGone(npc)) && !isFleeing)
         {
             npc.TargetClosest();
             target = Main.player[npc.target];
-            if (IsTargetGone(npc) || !target.ZoneCrimson)
+            if (IsTargetGone(npc))
             {
                 AttackManager.CountUp = true;
                 isFleeing = true;
@@ -95,7 +95,7 @@ public partial class BoC : AcidicNPCOverride
         AttackManager.CountUp = true;
 
         var target = Main.player[Npc.target];
-        if (!IsTargetGone(Npc) && target.ZoneCrimson)
+        if (!IsTargetGone(Npc))
         {
             AttackManager.CountUp = false;
             AttackManager.AiTimer = 0;
