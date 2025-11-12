@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using AcidicBosses.Common.Configs;
 using AcidicBosses.Common.Effects;
 using AcidicBosses.Common.Textures;
@@ -44,6 +45,8 @@ public class EoC : AcidicNPCOverride
 
     private bool mouthMode = false;
 
+    private float angularVelocity = 0f;
+
     public override void OnFirstFrame(NPC npc)
     {
         phaseTracker = new PhaseTracker([
@@ -68,6 +71,11 @@ public class EoC : AcidicNPCOverride
                 isFleeing = true;
                 AttackManager.AiTimer = 0;
             }
+        }
+
+        if (useAfterimages)
+        {
+            Dust.NewDust(Npc.position, Npc.width, Npc.height, DustID.Blood, Scale: 1.5f);
         }
 
         if (isFleeing)
@@ -521,13 +529,13 @@ public class EoC : AcidicNPCOverride
 
         var targetPos = Main.player[Npc.target].Center;
 
-        var offsetFromPlayer0 = new Vector2(710, -710);
+        var offsetFromPlayer0 = new Vector2(400, -400);
         var vel0 = (targetPos + offsetFromPlayer0).DirectionTo(targetPos) * dashSpeed;
         var pos0 = targetPos + offsetFromPlayer0;
         var vel2 = (targetPos - offsetFromPlayer0).DirectionTo(targetPos) * dashSpeed;
         var pos2 = targetPos - offsetFromPlayer0;
 
-        var offsetFromPlayer1 = new Vector2(-710, -710);
+        var offsetFromPlayer1 = new Vector2(-400, -400);
         var vel1 = (targetPos + offsetFromPlayer1).DirectionTo(targetPos) * dashSpeed;
         var pos1 = targetPos + offsetFromPlayer1;
         var vel3 = (targetPos - offsetFromPlayer1).DirectionTo(targetPos) * dashSpeed;
@@ -539,9 +547,13 @@ public class EoC : AcidicNPCOverride
                 TeleportationStyleID.RodOfDiscord);
             Main.TeleportEffect(new Rectangle((int)pos1.X, (int)pos1.Y, Npc.width, Npc.height),
                 TeleportationStyleID.RodOfDiscord);
+            Main.TeleportEffect(new Rectangle((int)pos2.X, (int)pos2.Y, Npc.width, Npc.height),
+                TeleportationStyleID.RodOfDiscord);
+            Main.TeleportEffect(new Rectangle((int)pos3.X, (int)pos3.Y, Npc.width, Npc.height),
+                TeleportationStyleID.RodOfDiscord);
 
-            NewPhantomDashLine(pos0, vel0.ToRotation(), indicateTime);
-            NewPhantomDashLine(pos1, vel1.ToRotation(), indicateTime);
+            // NewPhantomDashLine(pos0, vel0.ToRotation(), indicateTime);
+            // NewPhantomDashLine(pos1, vel1.ToRotation(), indicateTime);
         }
 
         if (AttackManager.AiTimer == indicateTime)
@@ -585,12 +597,12 @@ public class EoC : AcidicNPCOverride
 
         var targetPos = Main.player[Npc.target].Center;
 
-        var offsetFromPlayer0 = new Vector2(1000, 0);
+        var offsetFromPlayer0 = new Vector2(500, 0);
         var vel0 = (targetPos + offsetFromPlayer0).DirectionTo(targetPos) * dashSpeed;
         var pos0 = targetPos + offsetFromPlayer0;
         var vel2 = (targetPos - offsetFromPlayer0).DirectionTo(targetPos) * dashSpeed;
         var pos2 = targetPos - offsetFromPlayer0;
-        var offsetFromPlayer1 = new Vector2(0, -1000);
+        var offsetFromPlayer1 = new Vector2(0, -500);
         var vel1 = (targetPos + offsetFromPlayer1).DirectionTo(targetPos) * dashSpeed;
         var pos1 = targetPos + offsetFromPlayer1;
         var vel3 = (targetPos - offsetFromPlayer1).DirectionTo(targetPos) * dashSpeed;
@@ -602,9 +614,13 @@ public class EoC : AcidicNPCOverride
                 TeleportationStyleID.RodOfDiscord);
             Main.TeleportEffect(new Rectangle((int)pos1.X, (int)pos1.Y, Npc.width, Npc.height),
                 TeleportationStyleID.RodOfDiscord);
+            Main.TeleportEffect(new Rectangle((int)pos2.X, (int)pos2.Y, Npc.width, Npc.height),
+                TeleportationStyleID.RodOfDiscord);
+            Main.TeleportEffect(new Rectangle((int)pos3.X, (int)pos3.Y, Npc.width, Npc.height),
+                TeleportationStyleID.RodOfDiscord);
 
-            NewPhantomDashLine(pos0, vel0.ToRotation(), indicateTime);
-            NewPhantomDashLine(pos1, vel1.ToRotation(), indicateTime);
+            // NewPhantomDashLine(pos0, vel0.ToRotation(), indicateTime);
+            // NewPhantomDashLine(pos1, vel1.ToRotation(), indicateTime);
         }
 
         if (AttackManager.AiTimer == indicateTime)
@@ -668,7 +684,7 @@ public class EoC : AcidicNPCOverride
 
         var targetPos = new Vector2(originX, originY);
         var rot = (dashes * (MathHelper.Pi / dashesPerSpin) * spinDirection) + startAngle;
-        var offsetFromPlayer = new Vector2(1000, 0).RotatedBy(rot);
+        var offsetFromPlayer = new Vector2(700, 0).RotatedBy(rot);
         var pos = targetPos + offsetFromPlayer;
         var pos2 = targetPos - offsetFromPlayer;
         var vel = pos.DirectionTo(targetPos) * dashSpeed;
@@ -680,7 +696,18 @@ public class EoC : AcidicNPCOverride
                 SoundEngine.PlaySound(SoundID.ForceRoarPitched);
             }
 
-            new EffectLine(TextureRegistry.InvertedGlowLine, pos, vel.ToRotation(), 1900f, 33f, Color.Crimson,
+            new EffectLine(TextureRegistry.InvertedFadingGlowLine, pos, vel.ToRotation(), 700f, 33f, Color.Crimson,
+                dashAtTime + dashLength)
+            {
+                OnUpdate = line =>
+                {
+                    line.DrawColor =
+                        Color.Crimson
+                        * EasingHelper.CubicOut(1f - line.LifetimeRatio);
+                }
+            }.Spawn();
+            
+            new EffectLine(TextureRegistry.InvertedFadingGlowLine, pos2, (-vel).ToRotation(), 700f, 33f, Color.Crimson,
                 dashAtTime + dashLength)
             {
                 OnUpdate = line =>
@@ -702,6 +729,7 @@ public class EoC : AcidicNPCOverride
             var eye = NewPhantomEoC(pos, vel, dashAtTime);
             var eye2 = NewPhantomEoC(pos2, -vel, dashAtTime);
             eye.timeLeft = dashAtTime + dashLength;
+            eye2.timeLeft = dashAtTime + dashLength;
         }
 
         return isDone;
@@ -726,8 +754,8 @@ public class EoC : AcidicNPCOverride
         var spinT = Utils.GetLerpValue(0f, spinTime, AttackManager.AiTimer);
         var angularAccel = MathHelper.Pi * 0.1f;
         var spinCurve = new PiecewiseCurve()
-            .Add(EasingCurves.Quadratic, EasingType.In, MathHelper.PiOver2, 0.25f)
-            .Add(EasingCurves.Quadratic, EasingType.Out, MathHelper.TwoPi, 1f);
+            .Add(EasingCurves.Quadratic, EasingType.In, MathHelper.TwoPi * 0.1f, 0.1f)
+            .Add(MoreEasingCurves.Back, EasingType.Out, MathHelper.TwoPi, 1f);
 
         Npc.rotation = MathHelper.WrapAngle(startAngle + spinCurve.Evaluate(spinT));
 
@@ -793,7 +821,7 @@ public class EoC : AcidicNPCOverride
 
     private void NewDashLine(float offset, int lifetime)
     {
-        new EffectLine(TextureRegistry.InvertedFadingGlowLine, Npc.Center, Npc.rotation + offset, 1000f, 33f,
+        new EffectLine(TextureRegistry.InvertedFadingGlowLine, Npc.Center, Npc.rotation + offset, 500f, 33f,
             Color.Crimson, lifetime)
         {
             OnUpdate = line =>
@@ -807,7 +835,7 @@ public class EoC : AcidicNPCOverride
 
     private void NewPhantomDashLine(Vector2 position, float rotation, int lifetime)
     {
-        new EffectLine(TextureRegistry.InvertedGlowLine, position, rotation, 1900f, 33f, Color.Crimson, lifetime)
+        new EffectLine(TextureRegistry.InvertedFadingGlowLine, position, rotation, 1900f, 33f, Color.Crimson, lifetime)
         {
             OnUpdate = line => { line.DrawColor = Color.Crimson * EasingHelper.CubicOut(1f - line.LifetimeRatio); }
         }.Spawn();
@@ -832,7 +860,7 @@ public class EoC : AcidicNPCOverride
         // Draw it :)
         var drawPos = npc.Center - Main.screenPosition;
         var eyeTexture = TextureAssets.Npc[npc.type].Value;
-        var eyeOrigin = eyeTexture.Size() / new Vector2(1f, Main.npcFrameCount[npc.type]) * 0.5f;
+        var eyeOrigin = eyeTexture.Size() / new Vector2(1f, Main.npcFrameCount[npc.type]) * new Vector2(0.5f, 0.65f);
 
         if (useAfterimages) afterimageOpacity = 1f;
         else if (afterimageOpacity > 0) afterimageOpacity -= 0.05f;
@@ -920,6 +948,7 @@ public class EoC : AcidicNPCOverride
 
     public override void LookTowards(Vector2 target, float power)
     {
+        var old = Npc.rotation;
         Npc.rotation = Npc.rotation.AngleLerp(Npc.AngleTo(target) - MathHelper.PiOver2, power);
     }
 }

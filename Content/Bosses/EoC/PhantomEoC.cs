@@ -1,4 +1,5 @@
 ﻿using AcidicBosses.Common.Textures;
+using AcidicBosses.Content.Particles.Animated;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -43,6 +44,12 @@ public class PhantomEoC : ModProjectile
         {
             oldVel = Projectile.velocity;
             Projectile.velocity = Vector2.Zero;
+
+            for (var i = 0; i < 25; i++)
+            {
+                var speed = Main.rand.NextVector2Circular(15f, 15f) * 0.2f;
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Blood, speed.X, speed.Y, Scale: 2f);
+            }
         }
         
         Projectile.rotation = oldVel.ToRotation() - MathHelper.PiOver2;
@@ -50,6 +57,9 @@ public class PhantomEoC : ModProjectile
         if (aiTimer == MoveDelay)
         {
             Projectile.velocity = oldVel;
+            var ring = new SmokeRingParticle(Projectile.Center, Vector2.Zero, Projectile.rotation, Color.Gray, 30);
+            ring.Scale *= 2f;
+            ring.Spawn();
         }
 
         // EoC's Mouth Animation
@@ -70,6 +80,11 @@ public class PhantomEoC : ModProjectile
         {
             Projectile.frameCounter = 0;
             Projectile.frame = 3;
+        }
+
+        if (Main.rand.NextBool(1))
+        {
+            Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Blood, Scale: 1.5f);
         }
 
         aiTimer++;
@@ -97,21 +112,33 @@ public class PhantomEoC : ModProjectile
         if (Projectile.spriteDirection == 1)
             effects = SpriteEffects.FlipHorizontally;
         
+        var drawPos = Projectile.Center - Main.screenPosition;
         var eyeTexture = TextureAssets.Npc[NPCID.EyeofCthulhu].Value;
         var eyeFrame = eyeTexture.Frame(verticalFrames: Main.projFrames[Projectile.type], frameY: Projectile.frame);
-        var eyeOrigin = eyeTexture.Size() / new Vector2(1f, Main.projFrames[Projectile.type]) * 0.5f;
+        var eyeOrigin = eyeTexture.Size() / new Vector2(1f, Main.projFrames[Projectile.type]) * new Vector2(0.5f, 0.65f);
         
-        // Afterimages
-        for (var i = 1; i < Projectile.oldPos.Length; i += 2)
+        if (aiTimer >= MoveDelay)
         {
-            // Adapted from EoC NPC Afterimages
-            var fade = 0.5f * (10 - i) / 20f;
-            var afterImageColor = Color.Multiply(lightColor, fade);
-            
-            var pos = Projectile.oldPos[i] + new Vector2(Projectile.width, Projectile.height) / 2f - Main.screenPosition;
-            Main.spriteBatch.Draw(eyeTexture, pos, eyeFrame, afterImageColor, Projectile.rotation, eyeOrigin, Projectile.scale, effects, 0f);
-        }
+            // Afterimages
+            for (var i = 1; i < Projectile.oldPos.Length; i += 2)
+            {
+                // Adapted from EoC NPC Afterimages
+                var fade = 0.5f * (10 - i) / 20f;
+                var afterImageColor = Color.Multiply(lightColor, fade);
 
-        return true;
+                var pos = Projectile.oldPos[i] + new Vector2(Projectile.width, Projectile.height) / 2f -
+                          Main.screenPosition;
+                Main.spriteBatch.Draw(eyeTexture, pos, eyeFrame, afterImageColor, Projectile.rotation, eyeOrigin,
+                    Projectile.scale, effects, 0f);
+            }
+        }
+        
+        Main.spriteBatch.Draw(
+            eyeTexture, drawPos,
+            eyeFrame, Projectile.GetAlpha(lightColor),
+            Projectile.rotation, eyeOrigin, Projectile.scale,
+            effects, 0f);
+
+        return false;
     }
 }
