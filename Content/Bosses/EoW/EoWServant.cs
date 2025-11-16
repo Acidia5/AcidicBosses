@@ -100,16 +100,47 @@ public class EoWServant : AcidicNPC
         var origin = npc.frame.Size() * 0.5f;
         lightColor *= npc.Opacity;
 
-        // Outline when underground
-        BatchShadingManager.DrawNpc(npc, EffectsRegistry.UndergroundOutline, sb =>
-        {
-            EffectsManager.UndergroundOutlineApply(texAsset, Color.Violet, lightColor);
+        var backglowColor = Color.Purple with { A = 0 };
+        var backglowArea = 2f;
 
-            sb.Draw(
-                texture, drawPos,
-                npc.frame, lightColor,
-                npc.rotation, origin, npc.scale,
-                SpriteEffects.None, 0f);
-        });
+        for (var j = 0; j < 3; j++)
+        {
+            for (var i = -1; i < 2; i += 2)
+            {
+                var drawOffset = (npc.rotation + MathHelper.PiOver2 + MathHelper.PiOver2 * i).ToRotationVector2() *
+                                 (backglowArea + 0.25f * j);
+                Main.spriteBatch.Draw(
+                    texture, drawPos + drawOffset,
+                    npc.frame, backglowColor,
+                    npc.rotation, origin, npc.scale - 0.01f,
+                    SpriteEffects.None, 0f);
+            }
+
+            if (npc.type == ModContent.NPCType<EoWServant>())
+            {
+                var drawOffset = (npc.rotation - MathHelper.PiOver2).ToRotationVector2() * (backglowArea + 0.25f * j);
+                Main.spriteBatch.Draw(
+                    texture, drawPos + drawOffset,
+                    npc.frame, backglowColor,
+                    npc.rotation, origin, npc.scale - 0.01f,
+                    SpriteEffects.None, 0f);
+            }
+
+            if (npc.type == NPCID.EaterofWorldsTail)
+            {
+                var drawOffset = (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * (backglowArea + 0.25f * j);
+                Main.spriteBatch.Draw(
+                    texture, drawPos + drawOffset,
+                    npc.frame, backglowColor,
+                    npc.rotation, origin, npc.scale - 0.01f,
+                    SpriteEffects.None, 0f);
+            }
+        }
+
+        spriteBatch.Draw(
+            texture, drawPos,
+            npc.frame, lightColor,
+            npc.rotation, origin, npc.scale,
+            SpriteEffects.None, 0f);
     }
 }
