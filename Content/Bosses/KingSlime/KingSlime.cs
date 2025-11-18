@@ -747,12 +747,14 @@ public class KingSlime : AcidicNPCOverride
                         // Fairy dust trail
                         for (var i = 0; i < 5; i++)
                         {
-                            Dust.NewDust(
+                            var d = Dust.NewDustDirect(
                                 particle.Position,
-                                0,
-                                0,
-                                DustID.PinkFairy
+                                0, 0,
+                                DustID.GemRuby,
+                                Scale: 1.2f,
+                                Alpha: 50
                             );
+                            d.noGravity = true;
                         }
                     }
                 }.Spawn();
@@ -808,13 +810,16 @@ public class KingSlime : AcidicNPCOverride
                 for (var i = 0; i < 10; i++)
                 {
                     var vel = Main.rand.NextVector2Circular(5f, 5f);
-                    Dust.NewDust(
+                    var d = Dust.NewDustDirect(
                         Npc.Center,
                         0, 0,
-                        DustID.PinkFairy,
+                        DustID.GemRuby,
                         vel.X,
-                        vel.Y
+                        vel.Y,
+                        Scale: 1.2f,
+                        Alpha: 50
                     );
+                    d.noGravity = true;
                 }
             }
         });

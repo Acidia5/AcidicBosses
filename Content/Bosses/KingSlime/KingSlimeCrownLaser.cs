@@ -37,7 +37,7 @@ public class KingSlimeCrownLaser : DeathrayBase
             // Burst Dust
             for (var i = 0; i < 25; i++)
             {
-                Dust.NewDust(Projectile.position, 0, 0, DustID.PinkFairy);
+                Dust.NewDust(Projectile.position, 0, 0, DustID.GemRuby);
             }
             
             // Star
@@ -92,14 +92,16 @@ public class KingSlimeCrownLaser : DeathrayBase
 
     protected override void SpawnDust(Vector2 position)
     {
-        if (Projectile.timeLeft == maxTimeLeft)
+        if (Main.rand.NextBool(20))
         {
-            Dust.NewDust(position, 0, 0, DustID.PinkFairy, Scale: 0.75f);
+            var d = Dust.NewDustDirect(position, 0, 0, DustID.GemRuby, Alpha: 50, Scale: 2f);
+            d.noGravity = true;
         }
-
-        if (Main.rand.NextBool(100))
+        
+        if (Main.rand.NextBool(20))
         {
-            Dust.NewDust(position, 0, 0, DustID.PinkFairy, Scale: 0.5f);
+            var d = Dust.NewDustDirect(position, 0, 0, DustID.GemRuby, Alpha: 50, Scale: 1.2f);
+            d.noGravity = true;
         }
     }
 

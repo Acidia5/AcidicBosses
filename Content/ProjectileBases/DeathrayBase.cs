@@ -96,7 +96,7 @@ public abstract class DeathrayBase : ModProjectile, IAnchoredProjectile
             var rect = new Rectangle();
             rect.X = (int) position.X;
             rect.Y = (int) position.Y;
-            rect.Inflate(CollisionWidth / 2, CollisionWidth / 2);
+            rect.Inflate(CollisionWidth, CollisionWidth);
 
             var randPos = Main.rand.NextVector2FromRectangle(rect);
             SpawnDust(randPos);
