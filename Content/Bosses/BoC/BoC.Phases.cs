@@ -55,12 +55,14 @@ public partial class BoC
 
         var teleport = new AttackState(() => Attack_RandomTeleport(1.5f), 120);
         var tripleIchor = new AttackState(Attack_TripleIchorShot, 120);
+        var fakeoutIchor = new AttackState(Attack_FakeoutIchor, 120);
 
         AttackManager.SetAttackPattern([
             teleport,
             tripleIchor,
-            new AttackState(() => Attack_FastTeleport(TargetPlayer.Center + new Vector2(-500, -500)), 0),
+            new AttackState(() => Attack_FastTeleport(TargetPlayer.Center + new Vector2(-500, -300)), 0),
             new AttackState(Attack_BloodRain, 120),
+            fakeoutIchor,
         ]);
     }
 

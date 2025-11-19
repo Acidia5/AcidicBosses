@@ -35,9 +35,17 @@ public partial class BoC
         var dropProgress = (float) spawnedDrops / bloodDrops;
         if (moveEase >= dropProgress)
         {
-            new RingBurstParticle(Npc.Bottom + new Vector2(0, 40), Vector2.Zero, 0f, Color.Red, 30).Spawn();
+            var pos = Npc.Bottom;
+            new RingBurstParticle(pos, Vector2.Zero, 0f, Color.Maroon, 30).Spawn();
             new FakeAfterimage(Npc.Center, Npc.Center, Npc, 15).Spawn();
-            NewBloodShot(Npc.Bottom + new Vector2(0, 40), new Vector2(0, 5));
+            for (var i = 0; i < 25; i++)
+            {
+                var vel = Main.rand.NextVector2Unit(MathHelper.PiOver2 - MathHelper.Pi / 8f, MathHelper.PiOver4);
+                vel *= Main.rand.NextFloat(0f, 5f);
+                Dust.NewDustPerfect(pos, DustID.Blood, vel, Scale: 1.5f);
+            }
+            
+            NewBloodShot(pos, new Vector2(0, 5));
             spawnedDrops++;
         }
 

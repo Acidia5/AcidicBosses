@@ -335,8 +335,8 @@ public class CreeperOverride : AcidicNPCOverride
         var brain = Main.npc[NPC.crimsonBoss];
         if (brain == null || !brain.active) return;
         
-        connectionSegments = VerletSimulations.RopeVerletSimulation(connectionSegments, brain.Center,
-            connectionLength * 0.75f, connectionSimSettings, Npc.Center);
+        connectionSegments = VerletSimulations.RopeVerletSimulation(connectionSegments, Npc.Center,
+            connectionLength * 0.75f, connectionSimSettings, brain.Center);
         
         var renderSettings = new PrimitiveSettings(
             _ => connectionTex.Value.Width / 2f,

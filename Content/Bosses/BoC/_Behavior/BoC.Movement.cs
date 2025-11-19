@@ -106,7 +106,7 @@ public partial class BoC
         return isDone;
     }
 
-    private AcidAnimation fastTeleportAnimation;
+    private AcidAnimation? fastTeleportAnimation;
 
     private AcidAnimation PrepareFastTeleportAnimation()
     {

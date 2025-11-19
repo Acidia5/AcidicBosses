@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -15,6 +16,16 @@ public partial class BoC
         SoundEngine.PlaySound(SoundID.Item21, Npc.Center);
 
         Npc.velocity = Npc.DirectionTo(TargetPlayer.Center) * -5f;
+        
+        for (var i = 0; i < 25; i++)
+        {
+            var target = Main.player[Npc.target].Center;
+            var angle = Npc.DirectionTo(target).ToRotation();
+            
+            var vel = (angle + Main.rand.NextFloat(-MathHelper.Pi / 8f, MathHelper.Pi / 8f)).ToRotationVector2();
+            vel *= Main.rand.NextFloat(0f, 5f);
+            Dust.NewDustPerfect(Npc.Center, DustID.Ichor, vel, Scale: 1.5f);
+        }
 
         if (Main.netMode == NetmodeID.MultiplayerClient) return true;
         

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using AcidicBosses.Common.Effects;
+using AcidicBosses.Core.Animation;
 using AcidicBosses.Core.StateManagement;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -53,6 +54,8 @@ public abstract class AcidicNPCOverride : GlobalNPC
 
     private bool isFirstFrame = true;
 
+    private AcidAnimation? backgroundAnimation;
+
     public override bool AppliesToEntity(NPC entity, bool lateInstantiation)
     {
         return entity.type == OverriddenNpc && BossEnabled;
@@ -83,6 +86,12 @@ public abstract class AcidicNPCOverride : GlobalNPC
         AttackManager.PreAttackAi();
         var runBase = AcidAI(npc);
         AttackManager.PostAttackAi();
+        
+        if (backgroundAnimation?.RunAnimation() ?? false)
+        {
+            backgroundAnimation.Reset();
+            backgroundAnimation = null;
+        }
 
         return runBase;
     }
@@ -224,5 +233,11 @@ public abstract class AcidicNPCOverride : GlobalNPC
     public bool ShouldOverride()
     {
         return BossEnabled && !AcidicBosses.DisableReworks();
+    }
+
+    public void PlayBackgroundAnimation(AcidAnimation anim)
+    {
+        if (backgroundAnimation != null) backgroundAnimation.Reset();
+        backgroundAnimation = anim;
     }
 }

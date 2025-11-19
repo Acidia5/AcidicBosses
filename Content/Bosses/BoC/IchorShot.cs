@@ -35,7 +35,15 @@ public class IchorShot : ModProjectile
         {
             if (!Main.rand.NextBool(3))
             {
-                var dustId = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Ichor, 0f, 0f, 100);
+                var dustId = Dust.NewDust(
+                    Projectile.position,
+                    Projectile.width,
+                    Projectile.height,
+                    DustID.Ichor,
+                    0f, 0f,
+                    100,
+                    Scale: 1.5f
+                );
                 Main.dust[dustId].position = (Main.dust[dustId].position + Projectile.Center) / 2f;
                 Main.dust[dustId].noGravity = true;
                 var dust = Main.dust[dustId];
