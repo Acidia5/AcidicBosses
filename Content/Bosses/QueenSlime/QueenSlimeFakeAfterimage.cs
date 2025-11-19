@@ -20,7 +20,7 @@ public class QueenSlimeFakeAfterimage : FakeAfterimage
         var texture = TextureAssets.Npc[ToCopy.type].Value;
         var f = toCopy.GetGlobalNPC<QueenSlime>().Frame;
         var frameCount = Main.npcFrameCount[ToCopy.type];
-        var frame = texture.Frame(2, 16, f / frameCount, f % frameCount);
+        var frame = texture.Frame(2, 16, f.X / frameCount, f.Y % frameCount);
         frame.Inflate(0, -2);
         StartFrame = frame;
 

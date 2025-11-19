@@ -22,7 +22,6 @@ public partial class BoC
         // I have to do this workaround to offset the frame when the brain is open.
         // This game's code is so spaghetti that it won't go past 4 frames and I have no clue why.
         var frame = npc.frame;
-        if (isBrainOpen) frame.Y += npc.frame.Height * 4;
 
         // For fading on teleporting
         lightColor *= npc.Opacity;
@@ -61,15 +60,30 @@ public partial class BoC
         return false;
     }
 
-    public override void FindFrame(NPC npc, int frameHeight)
+    public override void AcidFindFrame(NPC npc, int frameHeight)
     {
-        if (npc.frameCounter > 6.0)
+        FrameCounter++;
+        switch (FrameCounter)
         {
-            npc.frameCounter = 0.0;
-            npc.frame.Y += frameHeight;
+            case < 6.0:
+                Frame.Y = 0;
+                break;
+            case < 12.0:
+                Frame.Y = frameHeight;
+                break;
+            case < 18.0:
+                Frame.Y = frameHeight * 2;
+                break;
+            case < 24.0:
+                Frame.Y = frameHeight * 3;
+                break;
+            default:
+                FrameCounter = 0.0;
+                Frame.Y = 0;
+                break;
         }
-
-        if (npc.frame.Y > frameHeight * 3) npc.frame.Y = 0;
+        
+        if (isBrainOpen) Frame.Y += frameHeight * 4;
     }
 
     public override void BossHeadSlot(NPC npc, ref int index)

@@ -891,32 +891,31 @@ public class EoC : AcidicNPCOverride
     }
 
     // Modified vanilla animating
-    public override void FindFrame(NPC npc, int frameHeight)
+    public override void AcidFindFrame(NPC npc, int frameHeight)
     {
-        if (!ShouldOverride()) base.FindFrame(npc, frameHeight);
-
-        if (npc.frameCounter < 7.0)
+        FrameCounter++;
+        if (FrameCounter < 7.0)
         {
-            npc.frame.Y = 0;
+            Frame.Y = 0;
         }
-        else if (npc.frameCounter < 14.0)
+        else if (FrameCounter < 14.0)
         {
-            npc.frame.Y = frameHeight;
+            Frame.Y = frameHeight;
         }
-        else if (npc.frameCounter < 21.0)
+        else if (FrameCounter < 21.0)
         {
-            npc.frame.Y = frameHeight * 2;
+            Frame.Y = frameHeight * 2;
         }
         else
         {
-            npc.frameCounter = 0.0;
-            npc.frame.Y = 0;
+            FrameCounter = 0.0;
+            Frame.Y = 0;
         }
 
         // Show Mouth by offsetting the frame
         if (mouthMode)
         {
-            npc.frame.Y += frameHeight * 3;
+            Frame.Y += frameHeight * 3;
         }
     }
 

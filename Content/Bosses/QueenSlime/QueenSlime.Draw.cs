@@ -71,7 +71,7 @@ public partial class QueenSlime
         drawPos.Y += 2f;
         
         var frameCount = Main.npcFrameCount[npc.type];
-        var frame = bodyTex.Frame(2, 16, Frame / frameCount, Frame % frameCount);
+        var frame = bodyTex.Frame(2, 16, Frame.Y / frameCount, Frame.Y % frameCount);
         frame.Inflate(0, -2);
         
         var origin = frame.Size() * new Vector2(0.5f, 1f);
@@ -98,7 +98,7 @@ public partial class QueenSlime
         drawPos.Y += 2f;
         
         var frameCount = Main.npcFrameCount[npc.type];
-        var frame = bodyTex.Frame(2, 16, Frame / frameCount, Frame % frameCount);
+        var frame = bodyTex.Frame(2, 16, Frame.Y / frameCount, Frame.Y % frameCount);
         frame.Inflate(0, -2);
         
         var origin = frame.Size() * new Vector2(0.5f, 1f);
@@ -176,7 +176,7 @@ public partial class QueenSlime
     private Vector2 CoreOffset(Vector2 pos)
     {
         var centerYOff = 0f;
-        switch (Frame)
+        switch (Frame.Y)
         {
             case 1:
             case 6:
@@ -247,7 +247,7 @@ public partial class QueenSlime
     private Vector2 CrownOffset(Vector2 pos)
     {
         var centerYOff = 0f;
-        switch (Frame)
+        switch (Frame.Y)
         {
             case 1:
                 centerYOff -= 10f;
@@ -297,7 +297,7 @@ public partial class QueenSlime
         return pos;
     }
 
-    public override void FindFrame(NPC npc, int frameHeight)
+    public override void AcidFindFrame(NPC npc, int frameHeight)
     {
         // Wing Flapping
         if (singleFlap || flapping)
@@ -330,52 +330,52 @@ public partial class QueenSlime
         FrameCounter++;
         if (npc.velocity.Y < 0f || flapping)
         {
-            if (Frame < 20 || Frame > 23) {
-                if (Frame < 4 || Frame > 7) {
-                    Frame = 4;
+            if (Frame.Y < 20 || Frame.Y > 23) {
+                if (Frame.Y < 4 || Frame.Y > 7) {
+                    Frame.Y = 4;
                     FrameCounter = 0;
                 }
 
                 if (FrameCounter >= 4.0) {
                     FrameCounter = 0;
-                    Frame++;
-                    if (Frame >= 7)
+                    Frame.Y++;
+                    if (Frame.Y >= 7)
                     {
-                        Frame = 7;
-                        if (flapping) Frame = 22;
+                        Frame.Y = 7;
+                        if (flapping) Frame.Y = 22;
                     }
                 }
             }
             else if (FrameCounter >= 5.0) {
                 FrameCounter = 0;
-                Frame++;
-                if (Frame >= 24) Frame = 20;
+                Frame.Y++;
+                if (Frame.Y >= 24) Frame.Y = 20;
             }
         }
         else if (npc.velocity.Y > 0f)
         {
-            if (Frame < 8 || Frame > 10) {
-                Frame = 8;
+            if (Frame.Y < 8 || Frame.Y > 10) {
+                Frame.Y = 8;
                 FrameCounter = 0;
             }
 
             if (FrameCounter >= 8) {
                 FrameCounter = 0;
-                Frame++;
-                if (Frame >= 10) Frame = 10;
+                Frame.Y++;
+                if (Frame.Y >= 10) Frame.Y = 10;
             }
         }
         else
         {
             if (FrameCounter >= 10)
             {
-                Frame++;
+                Frame.Y++;
                 FrameCounter = 0;
             }
 
-            if (Frame >= 4)
+            if (Frame.Y >= 4)
             {
-                Frame = 0;
+                Frame.Y = 0;
             }
         }
     }

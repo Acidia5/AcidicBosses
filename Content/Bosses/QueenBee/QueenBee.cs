@@ -780,34 +780,33 @@ public class QueenBee : AcidicNPCOverride
         return false;
     }
 
-    public override void FindFrame(NPC npc, int frameHeight)
+    public override void AcidFindFrame(NPC npc, int frameHeight)
     {
-        if (!ShouldOverride()) base.FindFrame(npc, frameHeight);
-
+        FrameCounter++;
         if (useUprightSprite)
         {
-            if (npc.frameCounter > 4.0)
+            if (FrameCounter > 4.0)
             {
-                npc.frame.Y += frameHeight;
-                npc.frameCounter = 0.0;
+                Frame.Y += frameHeight;
+                FrameCounter = 0.0;
             }
 
-            if (npc.frame.Y < frameHeight * 4)
-                npc.frame.Y = frameHeight * 4;
-            if (npc.frame.Y >= frameHeight * 12)
-                npc.frame.Y = frameHeight * 4;
+            if (Frame.Y < frameHeight * 4)
+                Frame.Y = frameHeight * 4;
+            if (Frame.Y >= frameHeight * 12)
+                Frame.Y = frameHeight * 4;
         }
         else
         {
-            if (npc.frameCounter > 4.0)
+            if (FrameCounter > 4.0)
             {
-                npc.frame.Y += frameHeight;
-                npc.frameCounter = 0.0;
+                Frame.Y += frameHeight;
+                FrameCounter = 0.0;
             }
 
-            if (npc.frame.Y >= frameHeight * 4)
+            if (Frame.Y >= frameHeight * 4)
             {
-                npc.frame.Y = 0;
+                Frame.Y = 0;
             }
         }
     }

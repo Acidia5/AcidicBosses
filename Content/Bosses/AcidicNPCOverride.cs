@@ -35,8 +35,9 @@ public abstract class AcidicNPCOverride : GlobalNPC
     protected abstract bool BossEnabled { get; }
 
     // FindFrame() doesn't override vanilla behavior, so use these instead of npc.frame
-    protected int FrameCounter = 0;
-    public int Frame = 0;
+    // This Frame will replace Npc.frame after AcidFindFrame()
+    protected double FrameCounter = 0;
+    public Rectangle Frame;
     
     /// <summary>
     /// The npc... Not much to say about this.
@@ -79,6 +80,7 @@ public abstract class AcidicNPCOverride : GlobalNPC
         if (isFirstFrame)
         {
             Npc = npc;
+            Frame = npc.frame;
             OnFirstFrame(npc);
             isFirstFrame = false;
         }
@@ -197,6 +199,19 @@ public abstract class AcidicNPCOverride : GlobalNPC
     public override void HitEffect(NPC npc, NPC.HitInfo hit)
     {
         if (!ShouldOverride()) return;
+    }
+    
+    public virtual void AcidFindFrame(NPC npc, int frameHeight)
+    {
+        
+    }
+
+    public sealed override void FindFrame(NPC npc, int frameHeight)
+    {
+        if (!ShouldOverride()) return;
+        if (isFirstFrame) return; // Use vanilla rendering if acidic stuff hasn't taken over yet
+        AcidFindFrame(npc, frameHeight);
+        npc.frame = Frame;
     }
 
     // Wrapper for PreDraw
