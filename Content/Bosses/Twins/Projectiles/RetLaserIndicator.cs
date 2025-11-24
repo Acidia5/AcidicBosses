@@ -3,6 +3,7 @@ using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.ProjectileBases;
 using AcidicBosses.Helpers;
 using Luminance.Common.Easings;
+using Luminance.Common.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -66,6 +67,27 @@ public class RetLaserIndicator : BaseLineProjectile
                 p.AngularVelocity = p.LifetimeRatio * MathHelper.Pi / 16f;
             }
         }.Spawn();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var vel = Main.rand.NextVector2Circular(5f, 5f);
+            Dust.NewDustPerfect(Projectile.position, DustID.GemRuby, vel, Scale: 0.5f);
+            
+            new GlowStarParticle(
+                Projectile.position,
+                Main.rand.NextVector2Circular(3f, 3f),
+                Main.rand.NextFloatDirection(),
+                Color.White,
+                15
+            )
+            {
+                AngularVelocity = Main.rand.NextFloat(0.1f),
+                OnUpdate = p =>
+                {
+                    p.Scale = Vector2.Lerp(new Vector2(1.5f), Vector2.Zero, p.LifetimeRatio);
+                }
+            }.Spawn();
+        }
         
         if (Main.netMode == NetmodeID.MultiplayerClient) return;
         // Use vanilla to keep scaling

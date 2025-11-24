@@ -72,6 +72,8 @@ public class EoC : AcidicNPCOverride
                 AttackManager.AiTimer = 0;
             }
         }
+        
+        squash = MathHelper.Lerp(squash, 0f, 0.1f);
 
         if (useAfterimages)
         {
@@ -314,8 +316,12 @@ public class EoC : AcidicNPCOverride
             var spinCurve = new PiecewiseCurve()
                 .Add(EasingCurves.Quadratic, EasingType.In, MathHelper.PiOver2, 0.25f)
                 .Add(MoreEasingCurves.Back, EasingType.Out, MathHelper.TwoPi, 1f);
-
+            var squashCurve = new PiecewiseCurve()
+                .Add(EasingCurves.Quadratic, EasingType.In, 0.15f, 0.1f)
+                .Add(MoreEasingCurves.Back, EasingType.Out, 0f, 1f);
+            
             Npc.rotation = MathHelper.WrapAngle(Npc.localAI[0] + spinCurve.Evaluate(spinT) * 2f);
+            squash = squashCurve.Evaluate(spinT);
         }
         // Transform to mouth and start shockwave
         else if (AttackManager.AiTimer == 90)
@@ -433,6 +439,12 @@ public class EoC : AcidicNPCOverride
 
                 SoundEngine.PlaySound(SoundID.ForceRoarPitched, Npc.Center);
                 useAfterimages = true;
+                squash = -0.05f;
+            }
+
+            if (dashState == DashState.Dashing)
+            {
+                squash = -0.05f;
             }
 
             if (dashState == DashState.Done)
@@ -757,7 +769,13 @@ public class EoC : AcidicNPCOverride
             .Add(EasingCurves.Quadratic, EasingType.In, MathHelper.TwoPi * 0.1f, 0.1f)
             .Add(MoreEasingCurves.Back, EasingType.Out, MathHelper.TwoPi, 1f);
 
+        var squashCurve = new PiecewiseCurve()
+            .Add(EasingCurves.Quadratic, EasingType.In, 0.15f, 0.1f)
+            .Add(MoreEasingCurves.Back, EasingType.Out, 0f, 1f);
+
+        
         Npc.rotation = MathHelper.WrapAngle(startAngle + spinCurve.Evaluate(spinT));
+        squash = squashCurve.Evaluate(spinT);
 
         if (AttackManager.AiTimer >= spinTime)
         {
@@ -805,6 +823,7 @@ public class EoC : AcidicNPCOverride
 
         Npc.Center = destination;
         Npc.velocity = awayDir * recoil;
+        squash = -0.25f;
 
         SoundEngine.PlaySound(SoundID.DD2_JavelinThrowersAttack, Npc.Center);
     }
@@ -851,6 +870,9 @@ public class EoC : AcidicNPCOverride
 
     #region Drawing
 
+    private float squash = 0f;
+    private Vector2 Scale => new Vector2(Npc.scale + squash * Npc.scale, Npc.scale - squash * Npc.scale);
+
     public override bool AcidicDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
         var effects = SpriteEffects.None;
@@ -875,7 +897,7 @@ public class EoC : AcidicNPCOverride
                 var afterImageColor = Color.Multiply(drawColor, fade);
 
                 var pos = npc.oldPos[i] + new Vector2(npc.width, npc.height) / 2f - Main.screenPosition;
-                spriteBatch.Draw(eyeTexture, pos, npc.frame, afterImageColor, npc.rotation, eyeOrigin, npc.scale,
+                spriteBatch.Draw(eyeTexture, pos, npc.frame, afterImageColor, npc.rotation, eyeOrigin, Scale,
                     effects,
                     0f);
             }
@@ -884,7 +906,7 @@ public class EoC : AcidicNPCOverride
         spriteBatch.Draw(
             eyeTexture, drawPos,
             npc.frame, npc.GetAlpha(drawColor),
-            npc.rotation, eyeOrigin, npc.scale,
+            npc.rotation, eyeOrigin, Scale,
             effects, 0f);
 
         return false;

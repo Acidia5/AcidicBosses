@@ -10,6 +10,7 @@ using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.ID;
 using Utils = Microsoft.VisualBasic.CompilerServices.Utils;
 
 namespace AcidicBosses.Content.Bosses.Twins.Projectiles;
@@ -44,6 +45,16 @@ public class SpazCircleIndicator : BaseEffectProjectile
             var ease = EasingHelper.QuadIn(progress);
             Projectile.Opacity = MathHelper.Lerp(1f, 0f, ease);
         });
+        
+        for (var i = 0; i < 25; i++)
+        {
+            var pos = Main.rand.NextVector2CircularEdge(size, size) + Main.rand.NextVector2Circular(width, width);
+            Dust.NewDust(
+                pos + Projectile.position,
+                0, 0,
+                DustID.CursedTorch
+            );
+        }
     }
 
     public override bool PreDraw(ref Color lightColor)
@@ -59,7 +70,6 @@ public class SpazCircleIndicator : BaseEffectProjectile
         circleSettings.Shader.TrySetParameter("segments", 1);
         PrimitiveRenderer.RenderCircleEdge(Projectile.position, circleSettings);
 
-        Main.spriteBatch.EnterShader(BlendState.Additive);
         var fireballs = 10;
         for (var i = 0; i < fireballs / 2; i++)
         {
@@ -71,10 +81,8 @@ public class SpazCircleIndicator : BaseEffectProjectile
             var pos1 = Projectile.position + new Vector2(fireX, fireY);
             var pos2 = Projectile.position - new Vector2(fireX, fireY);
 
-            Main.spriteBatch.DrawBloomLine(pos1, pos2, Color.Lime * Projectile.Opacity, 25f);          
+            Main.spriteBatch.DrawBloomLine(pos1, pos2, Color.Lime with { A = 0 } * Projectile.Opacity, 25f);          
         }
-
-        Main.spriteBatch.ExitShader();
         
         return false;
     }

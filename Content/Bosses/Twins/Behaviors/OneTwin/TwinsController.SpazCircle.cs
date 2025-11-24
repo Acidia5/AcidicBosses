@@ -1,6 +1,7 @@
 ﻿using System;
 using AcidicBosses.Content.Particles;
 using AcidicBosses.Core.Animation;
+using AcidicBosses.Core.Graphics.Sprites;
 using AcidicBosses.Helpers;
 using Luminance.Common.Easings;
 using Microsoft.Xna.Framework;
@@ -28,6 +29,29 @@ public partial class TwinsController
         const string targetPosKey = "targetPos";
         const string fireballsSpawnedKey = "fireballsSpawned";
         
+        // Collect energy particles
+        anim.AddConstantEvent((progress, frame) =>
+        {
+            if (Retinazer == null) return;
+            var spawnPos = Main.rand.NextVector2CircularEdge(20f, 20f);
+            var angVel = Main.rand.NextFloat(-0.1f, 0.1f);
+            var partRot = Main.rand.NextFloatDirection();
+            
+            new GlowStarParticle(spawnPos + Retinazer.Front, Vector2.Zero, partRot, Color.White, 30)
+            {
+                AngularVelocity = angVel,
+                IgnoreLighting = true,
+                Scale = Vector2.One,
+                OnUpdate = p =>
+                {
+                    var suck = EasingHelper.ExpOut(p.LifetimeRatio);
+                    var shrink = EasingHelper.CubicIn(p.LifetimeRatio);
+                    p.Position = Vector2.Lerp(spawnPos + Retinazer.Front, Retinazer.Front, suck);
+                    p.Scale = Vector2.Lerp(Vector2.One, Vector2.Zero, shrink);
+                }
+            }.Spawn();
+        });
+        
         // Teleport into position and start telegraph
         anim.AddInstantEvent(0, () =>
         {
@@ -38,10 +62,10 @@ public partial class TwinsController
             
             Spazmatism.Npc.rotation = MathHelper.Pi;
             Teleport(Spazmatism, target + new Vector2(distance, 0), 0f);
-            if (Retinazer.Npc.active) Teleport(Retinazer, target - new Vector2(0, distance + 100), 0f);
+            if (Retinazer != null) Teleport(Retinazer, target - new Vector2(0, distance + 100), 0f);
             
             Spazmatism.Npc.rotation = 0f;
-            if (Retinazer.Npc.active) Retinazer.Npc.rotation = 0f;
+            if (Retinazer != null) Retinazer.Npc.rotation = 0f;
 
             SoundEngine.PlaySound(SoundID.ForceRoarPitched, Spazmatism.Npc.Center);
             

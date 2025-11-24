@@ -1,4 +1,5 @@
 ﻿using AcidicBosses.Common.RenderManagers;
+using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.ProjectileBases;
 using AcidicBosses.Helpers;
 using Luminance.Common.Utilities;
@@ -50,6 +51,24 @@ public class RetDeathray : DeathrayBase
         else
         {
             widthScale = 1f;
+        }
+
+        if (Main.rand.NextBool(0.5f))
+        {
+            new GlowStarParticle(
+                Projectile.position,
+                Main.rand.NextVector2Circular(3f, 3f),
+                Main.rand.NextFloatDirection(),
+                Color.White,
+                15
+            )
+            {
+                AngularVelocity = Main.rand.NextFloat(0.1f),
+                OnUpdate = p =>
+                {
+                    p.Scale = Vector2.Lerp(new Vector2(1.5f), Vector2.Zero, p.LifetimeRatio);
+                }
+            }.Spawn();
         }
 
         timeAlive++;

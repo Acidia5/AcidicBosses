@@ -1,4 +1,5 @@
-﻿using AcidicBosses.Core.Animation;
+﻿using AcidicBosses.Content.Particles;
+using AcidicBosses.Core.Animation;
 using AcidicBosses.Helpers;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -62,6 +63,25 @@ public partial class TwinsController
 
             var angle = MathHelper.Lerp(-spread, spread, ease);
             Retinazer.Npc.rotation = MathHelper.WrapAngle(startingAngle + angle);
+            
+            // Collect energy particles
+            var spawnPos = Main.rand.NextVector2CircularEdge(20f, 20f);
+            var angVel = Main.rand.NextFloat(-0.1f, 0.1f);
+            var partRot = Main.rand.NextFloatDirection();
+            
+            new GlowStarParticle(spawnPos + Retinazer.Front, Vector2.Zero, partRot, Color.White, 30)
+            {
+                AngularVelocity = angVel,
+                IgnoreLighting = true,
+                Scale = Vector2.One,
+                OnUpdate = p =>
+                {
+                    var suck = EasingHelper.ExpOut(p.LifetimeRatio);
+                    var shrink = EasingHelper.CubicIn(p.LifetimeRatio);
+                    p.Position = Vector2.Lerp(spawnPos + Retinazer.Front, Retinazer.Front, suck);
+                    p.Scale = Vector2.Lerp(Vector2.One, Vector2.Zero, shrink);
+                }
+            }.Spawn();
 
             var laserProgress = (float) spawnedLasers / lasers;
             if (ease >= laserProgress && Main.netMode != NetmodeID.MultiplayerClient)

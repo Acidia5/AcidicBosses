@@ -1,4 +1,5 @@
 ﻿using System;
+using AcidicBosses.Common.Effects;
 using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.Particles.Animated;
 using AcidicBosses.Core.Animation;
@@ -122,19 +123,9 @@ public partial class TwinsController
             }, centerPos);
 
             new RingBurstParticle(centerPos, Vector2.Zero, 0f, Color.White, 30).Spawn();
-            new InternalCircleParticle(centerPos, Vector2.Zero, 0f, Color.White, 60)
-            {
-                OnUpdate = p =>
-                {
-                    var scaleEase = EasingHelper.ExpOut(p.LifetimeRatio);
-                    var fadeEase = EasingHelper.ExpIn(p.LifetimeRatio);
-                    p.Scale = Vector2.Lerp(Vector2.Zero, new Vector2(4f, 4f), scaleEase);
-                    p.Opacity = MathHelper.Lerp(0.5f, 0f, fadeEase);
-                }
-            }.Spawn();
 
             var burst = anim.Data.Get<bool>("burst");
-            if (burst)
+            if (burst && AcidUtils.IsServer())
             {
                 var balls = 8;
                 for (var i = 0; i < balls; i++)
@@ -167,9 +158,20 @@ public partial class TwinsController
                         AngularVelocity = Main.rand.NextFloat(-1f, 1f),
                         OnUpdate = p => { p.Scale = Vector2.One * scaleCurve.Evaluate(p.LifetimeRatio); }
                     }.Spawn();
+                }
 
-                    dir = Main.rand.NextVector2Circular(1f, 20f).RotatedBy(rotation);
+                for (var i = 0; i < 50; i++)
+                {
+                    var dir = Main.rand.NextVector2Circular(1f, 20f).RotatedBy(rotation);
                     Dust.NewDustDirect(centerPos, 0, 0, DustID.MinecartSpark, dir.X, dir.Y, Scale: 3);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < 50; i++)
+                {
+                    var dir = Main.rand.NextVector2Circular(1f, 5f).RotatedBy(rotation);
+                    Dust.NewDustDirect(centerPos, 0, 0, DustID.Smoke, dir.X, dir.Y, Scale: 1);
                 }
             }
         });

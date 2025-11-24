@@ -20,6 +20,9 @@ public class PhantomEoC : ModProjectile
 
     private int aiTimer = 0;
     private Vector2 oldVel;
+    
+    private float squash = 0f;
+    private Vector2 Scale => new Vector2(Projectile.scale + squash * Projectile.scale, Projectile.scale - squash * Projectile.scale);
 
     public override void SetStaticDefaults()
     {
@@ -60,6 +63,7 @@ public class PhantomEoC : ModProjectile
             var ring = new SmokeRingParticle(Projectile.Center, Vector2.Zero, Projectile.rotation, Color.Gray, 30);
             ring.Scale *= 2f;
             ring.Spawn();
+            squash = -0.05f;
         }
 
         // EoC's Mouth Animation
@@ -129,14 +133,14 @@ public class PhantomEoC : ModProjectile
                 var pos = Projectile.oldPos[i] + new Vector2(Projectile.width, Projectile.height) / 2f -
                           Main.screenPosition;
                 Main.spriteBatch.Draw(eyeTexture, pos, eyeFrame, afterImageColor, Projectile.rotation, eyeOrigin,
-                    Projectile.scale, effects, 0f);
+                    Scale, effects, 0f);
             }
         }
         
         Main.spriteBatch.Draw(
             eyeTexture, drawPos,
             eyeFrame, Projectile.GetAlpha(lightColor),
-            Projectile.rotation, eyeOrigin, Projectile.scale,
+            Projectile.rotation, eyeOrigin, Scale,
             effects, 0f);
 
         return false;
