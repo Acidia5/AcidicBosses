@@ -1,17 +1,15 @@
-﻿using AcidicBosses.Common.Textures;
-using AcidicBosses.Core.Graphics.Sprites;
-using AcidicBosses.Helpers;
+using AcidicBosses.Common.Textures;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.GameContent.Drawing;
+using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace AcidicBosses.Content.Bosses.BoC;
 
-public class IchorShot : ModProjectile
+public class BloodShot : ModProjectile
 {
-    public override string Texture => TextureRegistry.TerrariaProjectile(ProjectileID.IchorSplash);
+    public override string Texture => TextureRegistry.InvisPath;
     
     public override void SetDefaults()
     {
@@ -25,6 +23,11 @@ public class IchorShot : ModProjectile
     {
         // No complex ai, just spawn dust
         // Yoinked from ichor splash code
+
+        if (Projectile.ai[0] == 0)
+        {
+            SoundEngine.PlaySound(SoundID.Item171, Projectile.Center);
+        }
         
         Projectile.ai[0] += 0.6f;
         if (Projectile.ai[0] > 500f)
@@ -32,7 +35,7 @@ public class IchorShot : ModProjectile
             Projectile.Kill();
         }
         
-        Lighting.AddLight(Projectile.position, TorchID.Ichor);
+        Lighting.AddLight(Projectile.position, TorchID.Crimson);
         
         for (var i = 0; i < 2; i++)
         {
@@ -42,10 +45,10 @@ public class IchorShot : ModProjectile
                     Projectile.position,
                     Projectile.width,
                     Projectile.height,
-                    DustID.Ichor,
+                    DustID.Blood,
                     0f, 0f,
                     100,
-                    Scale: 1.5f
+                    Scale: 2f
                 );
                 Main.dust[dustId].position = (Main.dust[dustId].position + Projectile.Center) / 2f;
                 Main.dust[dustId].noGravity = true;
@@ -62,33 +65,22 @@ public class IchorShot : ModProjectile
         }
     }
 
-    public override void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-        target.AddBuff(BuffID.Ichor, 60 * 5, false);
-        
-        ParticleOrchestrator.RequestParticleSpawn(false, ParticleOrchestraType.Excalibur, new ParticleOrchestraSettings
-        {
-            PositionInWorld = Main.rand.NextVector2FromRectangle(target.Hitbox)
-        });
-    }
-    
     public override void OnKill(int timeLeft)
     {
+        SoundEngine.PlaySound(SoundID.Item171, Projectile.Center);
+        
         for (var i = 0; i < 50; i++)
         {
-            var splashDir = Main.rand.NextVector2Circular(2f, 2f);
+            var splashDir = Main.rand.NextVector2Circular(5f, 5f);
             Dust.NewDust(
                 Projectile.position,
                 Projectile.width,
                 Projectile.height,
-                DustID.Ichor,
+                DustID.Blood,
                 splashDir.X, splashDir.Y,
                 100,
-                Scale: 1f
+                Scale: 2f
             );
         }
     }
-    
-    
-    
 }

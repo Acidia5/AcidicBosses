@@ -46,6 +46,7 @@ Projectiles: {
 	CrystalShard.DisplayName: Crystal Shard
 	CrystalSpike.DisplayName: Crystal Spike
 	QueenSlimeSlamTrail.DisplayName: Queen Slime
+	BloodShot.DisplayName: Blood Shot
 }
 
 Buffs: {

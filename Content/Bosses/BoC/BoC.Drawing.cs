@@ -3,14 +3,23 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
+using Terraria.ModLoader;
 
 namespace AcidicBosses.Content.Bosses.BoC;
 
 public partial class BoC
 {
     private bool isBrainOpen = false;
-    private bool showPhantoms = false;
+    public bool ShowPhantoms = false;
     private Vector2 scale = Vector2.One;
+    private float phantomOpacity = 0f;
+
+    private void DrawAI()
+    {
+        if (ShowPhantoms) phantomOpacity = MathHelper.Lerp(phantomOpacity, 1f, 0.1f);
+        else phantomOpacity = MathHelper.Lerp(phantomOpacity, 0f, 0.1f);
+    }
     
     public override bool AcidicDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color lightColor)
     {
@@ -27,7 +36,7 @@ public partial class BoC
         lightColor *= npc.Opacity;
 
         // Phantoms
-        if (showPhantoms)
+        if (phantomOpacity > 0)
         {
             for (var i = 0; i < 4; i++)
             {
@@ -41,7 +50,7 @@ public partial class BoC
                 if (i is 0 or 1) phantomPos.Y = Main.LocalPlayer.Center.Y + offsetY;
                 else phantomPos.Y = Main.LocalPlayer.Center.Y - offsetY;
 
-                var phantomColor = Lighting.GetColor(phantomPos.ToTileCoordinates()) * 0.5f * npc.Opacity;
+                var phantomColor = Lighting.GetColor(phantomPos.ToTileCoordinates()) * 0.5f * npc.Opacity * phantomOpacity;
 
                 spriteBatch.Draw(
                     brainTexture, phantomPos - Main.screenPosition,
@@ -88,12 +97,12 @@ public partial class BoC
 
     public override void BossHeadSlot(NPC npc, ref int index)
     {
-        if (showPhantoms)
+        if (ShowPhantoms)
         {
             index = -1;
             return;
         }
-
-        base.BossHeadSlot(npc, ref index);
+        
+        index = NPCID.Sets.BossHeadTextures[NPCID.BrainofCthulhu];
     }
 }

@@ -44,20 +44,22 @@ public partial class BoC
             var target = Main.player[Npc.target].Center;
 
             var distance = MathF.Min(Npc.Distance(target), 750); // Don't teleport too far
-            distance = MathF.Max(distance, 250); // Nor too close
+            distance = MathF.Max(distance, 350); // Nor too close
 
             // Safely teleport
-            var tile = Vector2.Zero;
+            var pos = Vector2.Zero;
             for (var i = 0; i < 50; i++)
             {
-                var pos = Main.rand.NextVector2Unit() * distance + target;
+                var goalPos = Main.rand.NextVector2Unit() * distance + target;
 
-                if (Npc.AI_AttemptToFindTeleportSpot(ref tile, pos.ToTileCoordinates().X, pos.ToTileCoordinates().Y))
+                if (TryMakeTeleportSafe(out pos, goalPos))
+                {
                     break;
+                }
             }
 
-            offsetX = tile.ToWorldCoordinates().X - target.X;
-            offsetY = tile.ToWorldCoordinates().Y - target.Y;
+            offsetX = pos.X - target.X;
+            offsetY = pos.Y - target.Y;
             NetSync(Npc);
         }
 
@@ -167,5 +169,21 @@ public partial class BoC
         }
 
         return false;
+    }
+
+    private bool TryMakeTeleportSafe(out Vector2 safePos, Vector2 goalPos)
+    {
+        var tile = Vector2.Zero;
+        var success = Npc.AI_AttemptToFindTeleportSpot(
+            ref tile,
+            goalPos.ToTileCoordinates().X,
+            goalPos.ToTileCoordinates().Y,
+            telefragPreventionDistanceInTiles: 16, // Telefrag bad
+            teleportInAir: true
+        );
+        
+        safePos = tile.ToWorldCoordinates();
+
+        return success;
     }
 }

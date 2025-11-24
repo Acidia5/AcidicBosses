@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -24,6 +25,9 @@ public class CreeperOverride : AcidicNPCOverride
     protected override int OverriddenNpc => NPCID.Creeper;
     
     protected override bool BossEnabled => BossToggleConfig.Get().EnableBrainOfCthulhu;
+    
+    private float squash = 0f;
+    private Vector2 Scale => new Vector2(Npc.scale + squash * Npc.scale, Npc.scale - squash * Npc.scale);
 
     public enum AttackType
     {
@@ -111,6 +115,8 @@ public class CreeperOverride : AcidicNPCOverride
             return false;
         }
         
+        squash = MathHelper.Lerp(squash, 0f, 0.1f);
+        
         if (AiTimer > 0 && !countUpTimer)
             AiTimer--;
 
@@ -169,7 +175,10 @@ public class CreeperOverride : AcidicNPCOverride
                 break;
         }
 
-        if (attackState > 1) attackState = 0;
+        if (attackState > 1)
+        {
+            attackState = 0;
+        }
     }
 
     private void SuperDashAI()
@@ -204,7 +213,10 @@ public class CreeperOverride : AcidicNPCOverride
         }
 
         // 2 Dashes
-        if (attackState > 2) attackState = 0;
+        if (attackState > 2)
+        {
+            attackState = 0;
+        }
     }
 
     #endregion
@@ -271,6 +283,9 @@ public class CreeperOverride : AcidicNPCOverride
             useAfterimages = true;
             Npc.TargetClosest();
             Npc.velocity = Npc.rotation.ToRotationVector2() * 25f;
+
+            squash = 0.5f;
+            SoundEngine.PlaySound(SoundID.DD2_JavelinThrowersAttack with { Volume = 0.8f }, Npc.Center);
         }
         else if (AiTimer >= dashAtTime + dashLength)
         {
@@ -317,14 +332,14 @@ public class CreeperOverride : AcidicNPCOverride
                 var afterImageColor = Color.Multiply(drawColor, fade);
 
                 var pos = npc.oldPos[i] + new Vector2(npc.width, npc.height) / 2f - Main.screenPosition;
-                spriteBatch.Draw(texture, pos, npc.frame, afterImageColor, 0f, origin, npc.scale,
+                spriteBatch.Draw(texture, pos, npc.frame, afterImageColor, npc.rotation, origin, Scale,
                     SpriteEffects.None, 0f);
             }
 
         spriteBatch.Draw(
             texture, drawPos,
             npc.frame, drawColor,
-            0f, origin, npc.scale,
+            npc.rotation, origin, Scale,
             SpriteEffects.None, 0f);
 
         return false;

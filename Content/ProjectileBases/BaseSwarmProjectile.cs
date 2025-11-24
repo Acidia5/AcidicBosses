@@ -149,7 +149,13 @@ public abstract class BaseSwarmProjectile : ModProjectile
         // Draw collision for debug
         // DoOnSegments((i1, i2) =>
         // {
-        //     Utils.DrawLine(Main.spriteBatch, MakeWorldPos(i1), MakeWorldPos(i2), Color.Red * 0.5f, Color.Red * 0.5f, CollisionWidth);
+        //     var s = MakeWorldPos(i1);
+        //     var e = MakeWorldPos(i2);
+        //     var dir = s.DirectionTo(e);
+        //     var perp = dir.RotatedBy(MathHelper.PiOver2);
+        //     s -= perp * CollisionWidth / 2f;
+        //     e -= perp * CollisionWidth / 2f;
+        //     Utils.DrawLine(Main.spriteBatch, s, e, Color.Red * 0.5f, Color.Red * 0.5f, CollisionWidth);
         // });
         
         return false;

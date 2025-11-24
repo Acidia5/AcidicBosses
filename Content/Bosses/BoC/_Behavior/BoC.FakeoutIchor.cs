@@ -1,5 +1,6 @@
 using AcidicBosses.Core.Animation;
 using AcidicBosses.Helpers;
+using Luminance.Common.Utilities;
 using Microsoft.Xna.Framework;
 using Terraria;
 
@@ -29,16 +30,35 @@ public partial class BoC
             }
         });
 
+        // Rapidly teleport randomly
+        // This will be out of sync between players, but that's fine
         anim.AddSequencedEvent(90, (progress, frame) =>
         {
+            Npc.damage = 0; // Don't telefrag
             if (frame % 15 == 0)
             {
                 fastTeleportAnimation ??= PrepareFastTeleportAnimation();
-                fastTeleportAnimation.Data.Set<Vector2>("goalPos", TargetPlayer.Center + Main.rand.NextVector2CircularEdge(dist, dist));
+                var pos = TargetPlayer.Center + Main.rand.NextVector2CircularEdge(dist, dist);
+                
+                // 5 tries to find a suitably different angle
+                for (var i = 0; i < 5; i++)
+                {
+                    var diff = pos.DirectionTo(TargetPlayer.Center).ToRotation() -
+                               Npc.Center.DirectionTo(TargetPlayer.Center).ToRotation();
+                    if (diff < MathHelper.PiOver4)
+                    {
+                        pos = TargetPlayer.Center + Main.rand.NextVector2CircularEdge(dist, dist);
+                    }
+                    else break;
+                }
+                
+                fastTeleportAnimation.Data.Set<Vector2>("goalPos", pos);
                 PlayBackgroundAnimation(fastTeleportAnimation);
             }
         });
         
+        // Teleport into final position.
+        // This brings the position back into sync
         anim.AddSequencedEvent(30, (progress, frame) =>
         {
             if (frame == 0)
@@ -51,9 +71,10 @@ public partial class BoC
         
         anim.AddSequencedEvent(15, (progress, frame) =>
         {
+            Npc.damage = Npc.defDamage;
             if (frame == 0)
             {
-                Attack_TripleIchorShot();
+                Attack_IchorShot(3);
             }
         });
         

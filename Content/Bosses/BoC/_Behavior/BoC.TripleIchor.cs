@@ -8,7 +8,7 @@ namespace AcidicBosses.Content.Bosses.BoC;
 
 public partial class BoC
 {
-    private bool Attack_TripleIchorShot()
+    private bool Attack_IchorShot(int shots)
     {
         const float spread = MathF.PI / 6f;
         const float speed = 5f;
@@ -29,15 +29,28 @@ public partial class BoC
 
         if (Main.netMode == NetmodeID.MultiplayerClient) return true;
         
-        for (var i = -1; i <= 1; i++)
+        if (shots % 2 == 1)
         {
-            var angleOffset = spread * i;
-            var target = Main.player[Npc.target].Center;
-            var angle = Npc.DirectionTo(target).ToRotation() + angleOffset;
+            for (var i = -shots / 2; i <= shots / 2; i++)
+            {
+                var angleOffset = spread * i;
+                var target = Main.player[Npc.target].Center;
+                var angle = Npc.DirectionTo(target).ToRotation() + angleOffset;
 
-            NewIchorShot(Npc.Center, angle.ToRotationVector2() * speed);
+                NewIchorShot(Npc.Center, angle.ToRotationVector2() * speed);
+            }
         }
+        else
+        {
+            for (var i = -shots / 2; i < shots / 2; i++)
+            {
+                var angleOffset = spread * (i + 0.5f);
+                var target = Main.player[Npc.target].Center;
+                var angle = Npc.DirectionTo(target).ToRotation() + angleOffset;
 
+                NewIchorShot(Npc.Center, angle.ToRotationVector2() * speed);
+            }
+        }
         return true;
     }
 }

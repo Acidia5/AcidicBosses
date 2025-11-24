@@ -55,6 +55,10 @@ public partial class BoC : AcidicNPCOverride
             PhaseCreeperOne,
             PhaseAngerOne,
             PhaseTransitionOne,
+            PhaseCreeperTwo,
+            PhaseAngerTwo,
+            PhaseTransitionDesperation,
+            PhaseDesperation
         ]);
 
         CloseBrain();
@@ -62,6 +66,8 @@ public partial class BoC : AcidicNPCOverride
 
     public override bool AcidAI(NPC npc)
     {
+        DrawAI();
+        
         if (isBrainOpen && Main.rand.NextBool(20))
         {
             var pos = Main.rand.NextVector2FromRectangle(Npc.getRect());
@@ -154,14 +160,14 @@ public partial class BoC : AcidicNPCOverride
     {
         return ProjHelper.NewUnscaledProjectile(Npc.GetSource_FromAI(), position, velocity,
             ModContent.ProjectileType<IchorShot>(),
-            Npc.damage / 4, 3);
+            (int)(Npc.damage * 1.2f), 3);
     }
 
     private Projectile NewBloodShot(Vector2 position, Vector2 velocity)
     {
         return ProjHelper.NewUnscaledProjectile(Npc.GetSource_FromAI(), position, velocity,
-            ProjectileID.BloodNautilusShot,
-            Npc.damage / 4, 3);
+            ModContent.ProjectileType<BloodShot>(),
+            Npc.damage, 3);
     }
 
     public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
