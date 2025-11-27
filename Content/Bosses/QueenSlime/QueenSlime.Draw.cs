@@ -297,7 +297,7 @@ public partial class QueenSlime
         return pos;
     }
 
-    public override void AcidFindFrame(NPC npc, int frameHeight)
+    public override bool AcidFindFrame(NPC npc, int frameHeight)
     {
         // Wing Flapping
         if (singleFlap || flapping)
@@ -378,5 +378,7 @@ public partial class QueenSlime
                 Frame.Y = 0;
             }
         }
+
+        return false;
     }
 }

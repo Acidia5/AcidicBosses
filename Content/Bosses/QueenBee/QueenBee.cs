@@ -780,7 +780,7 @@ public class QueenBee : AcidicNPCOverride
         return false;
     }
 
-    public override void AcidFindFrame(NPC npc, int frameHeight)
+    public override bool AcidFindFrame(NPC npc, int frameHeight)
     {
         FrameCounter++;
         if (useUprightSprite)
@@ -809,6 +809,8 @@ public class QueenBee : AcidicNPCOverride
                 Frame.Y = 0;
             }
         }
+
+        return false;
     }
 
     #endregion

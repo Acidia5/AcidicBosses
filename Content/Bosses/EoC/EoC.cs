@@ -913,7 +913,7 @@ public class EoC : AcidicNPCOverride
     }
 
     // Modified vanilla animating
-    public override void AcidFindFrame(NPC npc, int frameHeight)
+    public override bool AcidFindFrame(NPC npc, int frameHeight)
     {
         FrameCounter++;
         if (FrameCounter < 7.0)
@@ -939,6 +939,8 @@ public class EoC : AcidicNPCOverride
         {
             Frame.Y += frameHeight * 3;
         }
+
+        return false;
     }
 
     public override void BossHeadSlot(NPC npc, ref int index)

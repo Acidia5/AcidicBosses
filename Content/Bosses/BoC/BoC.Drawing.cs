@@ -69,7 +69,7 @@ public partial class BoC
         return false;
     }
 
-    public override void AcidFindFrame(NPC npc, int frameHeight)
+    public override bool AcidFindFrame(NPC npc, int frameHeight)
     {
         FrameCounter++;
         switch (FrameCounter)
@@ -93,6 +93,8 @@ public partial class BoC
         }
         
         if (isBrainOpen) Frame.Y += frameHeight * 4;
+
+        return false;
     }
 
     public override void BossHeadSlot(NPC npc, ref int index)

@@ -3,6 +3,7 @@ using AcidicBosses.Common.Textures;
 using AcidicBosses.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
 using Terraria;
 using Terraria.GameContent.Events;
 using Terraria.ModLoader;
@@ -39,8 +40,11 @@ public class InsanityOverlaySystem : ModSystem
     private float overlayOpacity = 0f;
     private const int Buffer = 32;
 
+    public static Asset<Texture2D> InsanityOverlay;
+
     public override void Load()
     {
+        InsanityOverlay = ModContent.Request<Texture2D>("AcidicBosses/Assets/Textures/InsanityOverlay");
         On_ScreenDarkness.DrawFront += DrawOverlay;
     }
 
@@ -56,7 +60,7 @@ public class InsanityOverlaySystem : ModSystem
         if (overlayOpacity <= 0f) return;
 
         // This isn't fully accurate to Don't Starve, but I don't care.
-        var tex = TextureRegistry.InsanityOverlay.Value;
+        var tex = InsanityOverlay.Value;
         var offset = Main.rand.NextVector2Unit() * 4 * overlayOpacity;
         var scale = (int)MathHelper.Lerp(Buffer + 256, Buffer, EasingHelper.QuadOut(overlayOpacity));
         var dest = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);

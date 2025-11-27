@@ -64,7 +64,7 @@ public abstract class Twin : AcidicNPCOverride
         return false;
     }
     
-    public override void AcidFindFrame(NPC npc, int frameHeight)
+    public override bool AcidFindFrame(NPC npc, int frameHeight)
     {
         FrameCounter++;
         if (FrameCounter < 7.0)
@@ -90,6 +90,8 @@ public abstract class Twin : AcidicNPCOverride
         {
             Frame.Y += frameHeight * 3;
         }
+
+        return false;
     }
     
     public override void BossHeadSlot(NPC npc, ref int index)

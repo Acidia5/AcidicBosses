@@ -201,17 +201,22 @@ public abstract class AcidicNPCOverride : GlobalNPC
         if (!ShouldOverride()) return;
     }
     
-    public virtual void AcidFindFrame(NPC npc, int frameHeight)
+    /// <summary>
+    /// Overrides FindFrame
+    /// </summary>
+    /// <param name="npc"></param>
+    /// <param name="frameHeight"></param>
+    /// <returns>true if using npc.frame, false if using Frame</returns>
+    public virtual bool AcidFindFrame(NPC npc, int frameHeight)
     {
-        
+        return true;
     }
 
     public sealed override void FindFrame(NPC npc, int frameHeight)
     {
         if (!ShouldOverride()) return;
         if (isFirstFrame) return; // Use vanilla rendering if acidic stuff hasn't taken over yet
-        AcidFindFrame(npc, frameHeight);
-        npc.frame = Frame;
+        if (!AcidFindFrame(npc, frameHeight)) npc.frame = Frame;
     }
 
     // Wrapper for PreDraw

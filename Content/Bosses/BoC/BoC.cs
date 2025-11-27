@@ -34,7 +34,7 @@ public partial class BoC : AcidicNPCOverride
 
     public override void SetDefaults(NPC entity)
     {
-        base.SetDefaults(entity);
+        if (!ShouldOverride()) return;
 
         entity.BossBar = ModContent.GetInstance<BoCBossBar>();
         entity.knockBackResist = 0f; // Remove knockback

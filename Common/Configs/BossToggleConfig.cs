@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using AcidicBosses.Helpers;
 using Luminance.Common.Utilities;
@@ -33,6 +34,7 @@ public class BossToggleConfig : ModConfig
         if (CheckBoss(NPCID.QueenSlimeBoss, EnableQueenSlime, pending.EnableQueenSlime)) return true;
         if (CheckBoss(NPCID.Retinazer, EnableTwins, pending.EnableTwins)) return true;
         if (CheckBoss(NPCID.Spazmatism, EnableTwins, pending.EnableTwins)) return true;
+        if (CheckBoss(NPCID.Deerclops, EnableDeerclops, pending.EnableDeerclops)) return true;
         
         return false;
     }
@@ -58,6 +60,9 @@ public class BossToggleConfig : ModConfig
     
     [DefaultValue(true)]
     public bool EnableQueenBee;
+
+    [DefaultValue(true)]
+    public bool EnableDeerclops;
     
     [DefaultValue(true)]
     public bool EnableSkeletron;
