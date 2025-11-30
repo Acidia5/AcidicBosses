@@ -360,6 +360,8 @@ public partial class Deerclops
     private static readonly Point JumpFacingCam = new(4, 4);
     private static readonly Point LandFacingCam = new(4, 1);
     private static readonly Point IdleFacingCam = new(4, 0);
+    private static readonly Point JumpFacingSide = new(2, 3);
+    private static readonly Point LandFacingSide = new(3, 1);
 
     #endregion
 }

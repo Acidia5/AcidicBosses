@@ -19,9 +19,6 @@ public partial class Deerclops
 
     private void Phase_One()
     {
-        if (MathF.Abs(Npc.Center.X - TargetPlayer.Center.X) > 100)
-        {
-            Npc.velocity.X = 3f * Npc.HorizontalDirectionTo(TargetPlayer.Center);
-        }
+        ApproachPlayer();
     }
 }

@@ -19,11 +19,19 @@ public partial class Deerclops : AcidicNPCOverride
 
     private PhaseTracker phaseTracker;
     
-    public const int GroundOffset = 70; // How far off the ground its hitbox is
-    public const int FeetHeightCorrection = 6; // Correction for feet touching ground
+    // Constants for how far off the ground her hitbox is
+    public const int GroundOffset = 70;
+    public const int FeetHeightCorrection = 6; // Correction for hooves touching ground
     public int TileCollisionHeight => Npc.height + GroundOffset - FeetHeightCorrection;
+    public Vector2 BottomPos
+    {
+        get => Npc.Top + new Vector2(0, TileCollisionHeight);
+        set => Npc.Top = value - new Vector2(0, TileCollisionHeight);
+    }
 
+    // These are different to the vanilla values because she uses custom movement
     private bool useCollision = true;
+    private bool useGravity = true;
 
     public override void SetDefaults(NPC entity)
     {
@@ -31,6 +39,7 @@ public partial class Deerclops : AcidicNPCOverride
 
         // Demote Deerclops in progression to pre-skeletron
         // 15k -> 11k on master
+        // I would move her in boss checklist if I could
         entity.lifeMax = (int)(entity.lifeMax * 0.75f);
         entity.height -= GroundOffset;
     }
@@ -38,6 +47,7 @@ public partial class Deerclops : AcidicNPCOverride
     public override void OnFirstFrame(NPC npc)
     {
         // Cancel generic roar in favor of Deerclops scream
+        // Idk which one is used so I just try to cancel both :P
         SoundEngine.FindActiveSound(SoundID.Roar)?.Stop();
         SoundEngine.FindActiveSound(SoundID.ForceRoar)?.Stop();
         SoundEngine.PlaySound(SoundID.DeerclopsScream with { Volume = 1.5f });
@@ -52,12 +62,14 @@ public partial class Deerclops : AcidicNPCOverride
     {
         NPC.deerclopsBoss = Npc.whoAmI;
         
+        // Retarget on target lost
+        // TODO: DON'T FORGET FLEE BEHAVIOR!!!
         if (IsTargetGone(npc))
         {
             npc.TargetClosest();
         }
 
-        // Force snow biome
+        // Force snow biome for nearby players
         foreach (var player in Main.player)
         {
             if (!player.active) continue;
@@ -67,7 +79,9 @@ public partial class Deerclops : AcidicNPCOverride
         
         DrawUpdate();
         phaseTracker.RunPhaseAI();
-        if (useCollision) ApplyGravityAndCollision();
+        
+        if (useGravity) ApplyGravity();
+        if (useCollision) ApplyCollision();
         
         return false;
     }

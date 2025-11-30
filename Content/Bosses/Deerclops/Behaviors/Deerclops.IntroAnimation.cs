@@ -27,6 +27,7 @@ public partial class Deerclops
             Npc.scale = 0; ;
             Npc.dontTakeDamage = true;
             useCollision = false;
+            useGravity = false;
             Npc.behindTiles = true;
 
             var groundTile = Utilities.FindGroundVertical(TargetPlayer.Center.ToTileCoordinates());
@@ -42,7 +43,8 @@ public partial class Deerclops
             // Cut out music and delay Deerclops theme
             if (Main.audioSystem is LegacyAudioSystem audioSystem)
             {
-                audioSystem.AudioTracks[Main.curMusic].Pause();
+                var deerclopsMusic = audioSystem.AudioTracks[Main.curMusic];
+                deerclopsMusic?.Pause();
                 for (var i = 0; i < Main.musicFade.Length; i++)
                 {
                     Main.musicFade[i] = 0f;
@@ -62,9 +64,10 @@ public partial class Deerclops
             // Start deerclops theme
             if (Main.audioSystem is LegacyAudioSystem audioSystem)
             {
-                audioSystem.AudioTracks[Main.curMusic].Resume();
+                var deerclopsMusic = audioSystem.AudioTracks[Main.curMusic];
+                deerclopsMusic?.Resume();
+                Main.musicFade[Main.curMusic] = 1f;
             }
-            Main.musicFade[Main.curMusic] = 1f;
             
             SoundEngine.PlaySound(SoundID.DeerclopsStep with { Volume = 3f, Pitch = -0.25f}, Npc.Bottom);
             SoundEngine.PlaySound(SoundID.DeerclopsRubbleAttack, Npc.Bottom);
@@ -96,6 +99,7 @@ public partial class Deerclops
             Npc.damage = Npc.defDamage;
             Npc.dontTakeDamage = false;
             useCollision = true;
+            useGravity = true;
 
             overrideAnimationFrame = null;
         });
