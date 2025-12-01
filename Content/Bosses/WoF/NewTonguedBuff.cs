@@ -12,8 +12,7 @@ namespace AcidicBosses.Content.Bosses.WoF;
 /// </summary>
 public class NewTonguedBuff : ModBuff
 {
-    private NPC WoF => Main.npc[Main.wofNPCIndex];
-    private float WallDistance => WoF.ai[3];
+    private static WoF? Wall => WoF.GetInstance();
 
     public override string Texture => "Terraria/Images/Buff_38";
 
@@ -31,27 +30,21 @@ public class NewTonguedBuff : ModBuff
         player.StopVanityActions();
         var done = false;
         
-        if (Main.wofNPCIndex >= 0)
+        if (Wall != null)
         {
-            var target = new Vector2(0, WoF.Center.Y);
-
-            // Target in front of the closer wall
-            var rightWallPos = WoF.Center;
-            rightWallPos.X += WallDistance;
-            var leftWallPos = WoF.Center;
-            leftWallPos.X -= WallDistance;
+            // Target the closer wall
+            var leftWallPos = Wall.LeftWallRect.Right();
+            var rightWallPos = Wall.RightWallRect.Left();
             
             var distRightWall = player.Center.Distance(rightWallPos);
             var distLeftWall = player.Center.Distance(leftWallPos);
+	    
+            // Choose the closer wall as the target
             
-            if (distRightWall < distLeftWall)
-            {
-                target.X = rightWallPos.X - 200;
-            }
-            else
-            {
-                target.X = leftWallPos.X + 200;
-            }
+            var target = new Vector2(0);
+
+            if (distRightWall < distLeftWall) target = rightWallPos;
+            else target = leftWallPos;
 
             // The rest is vanilla logic with vector math
             var dist = target.Distance(player.Center);
@@ -67,7 +60,7 @@ public class NewTonguedBuff : ModBuff
                 closeness = 1f;
                 done = true;
             }
-            var vel = (target - player.Center) * closeness;
+            var vel = player.Center.DirectionTo(target) * closeness;
             player.velocity = vel;
         }
         else

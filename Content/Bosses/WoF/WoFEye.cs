@@ -1,6 +1,9 @@
 ﻿using AcidicBosses.Common.Configs;
+using Luminance.Common.Utilities;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.ID;
 
 namespace AcidicBosses.Content.Bosses.WoF;
@@ -10,24 +13,19 @@ public class WoFEye : AcidicNPCOverride
     protected override int OverriddenNpc => NPCID.WallofFleshEye;
     protected override bool BossEnabled => BossToggleConfig.Get().EnableWallOfFlesh;
 
-
-    private NPC wall => Main.npc[Main.wofNPCIndex];
+    private static WoF? Wall => WoF.GetInstance();
     
     private WoF.PartPosition EyePos
     {
         get => (WoF.PartPosition) Npc.ai[0];
         set => Npc.ai[0] = (float) value;
     }
-
+    
     private WoF.PartState PartState
     {
         get => (WoF.PartState) Npc.ai[2];
         set => Npc.ai[2] = (float) value;
     }
-    
-    private float WallDistance => wall.ai[3];
-
-    #region AI
 
     private bool countUpTimer = false;
 
@@ -39,15 +37,27 @@ public class WoFEye : AcidicNPCOverride
 
     public override void OnFirstFrame(NPC npc)
     {
+        if (Wall == null)
+        {
+            Npc.active = false;
+            return;
+        }
+        
         AiTimer = 0;
         Npc.realLife = Main.wofNPCIndex;
-        Npc.life = wall.life;
-        Npc.lifeMax = wall.lifeMax;
+        Npc.life = Wall.Npc.life;
+        Npc.lifeMax = Wall.Npc.lifeMax;
         Npc.behindTiles = false;
     }
 
     public override bool AcidAI(NPC npc)
     {
+        if (Wall == null)
+        {
+            Npc.active = false;
+            return false;
+        }
+        
         if (AiTimer > 0 && !countUpTimer)
             AiTimer--;
         
@@ -58,9 +68,9 @@ public class WoFEye : AcidicNPCOverride
         }
 
         Npc.realLife = Main.wofNPCIndex;
-        if (wall.life > 0)
+        if (Wall.Npc.life > 0)
         {
-            Npc.life = wall.life;
+            Npc.life = Wall.Npc.life;
         }
         
         if ((PartState & WoF.PartState.FaceTarget) != 0)
@@ -75,18 +85,21 @@ public class WoFEye : AcidicNPCOverride
         // Sync stuff
         if ((EyePos & WoF.PartPosition.Left) != 0)
         {
-            Npc.position.X = wall.position.X - WallDistance;
             Npc.direction = 1;
             Npc.spriteDirection = Npc.direction;
-            MoveToWallPosLeft();
         }
         else
         {
-            Npc.position.X = wall.position.X + WallDistance;
             Npc.direction = -1;
             Npc.spriteDirection = Npc.direction;
-            MoveToWallPosRight();
         }
+
+        var goalCenter = Wall.PartPosToWorldPos(EyePos);
+        Npc.Center = Npc.Center with
+        {
+            X = goalCenter.X,
+            Y = MathHelper.Lerp(Npc.Center.Y, goalCenter.Y, 0.1f)
+        };
         
         Npc.TargetClosest_WOF();
  
@@ -96,70 +109,27 @@ public class WoFEye : AcidicNPCOverride
         return false;
     }
 
-    #endregion
-    
-    #region Drawing
+    public override bool AcidicDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color lightColor)
 
-    private void MoveToWallPosRight()
     {
-        var posY = (WoFSystem.WofDrawAreaBottomRight + WoFSystem.WofDrawAreaTopRight) / 2f;
-        if ((EyePos & WoF.PartPosition.Top) != 0)
-        {
-            posY = (posY + WoFSystem.WofDrawAreaBottomRight) / 2f;
-        }
-        else
-        {
-            posY = (posY + WoFSystem.WofDrawAreaTopRight) / 2f;
-        }
-        posY -= Npc.height / 2f;
+        var tex = TextureAssets.Npc[Npc.type];
+        var pos = Npc.Center - screenPos;
+        var origin = Npc.frame.Size() / 2f;
+        origin.X += 16f * Npc.spriteDirection;
         
-        MoveToWallPos(posY);
-    }
-    
-    private void MoveToWallPosLeft()
-    {
-        var posY = (WoFSystem.WofDrawAreaBottomLeft + WoFSystem.WofDrawAreaTopLeft) / 2f;
-        if ((EyePos & WoF.PartPosition.Top) != 0)
-        {
-            posY = (posY + WoFSystem.WofDrawAreaBottomLeft) / 2f;
-        }
-        else
-        {
-            posY = (posY + WoFSystem.WofDrawAreaTopLeft) / 2f;
-        }
-        posY -= Npc.height / 2f;
+        Main.EntitySpriteDraw(
+            tex.Value,
+            pos,
+            Npc.frame,
+            lightColor,
+            Npc.rotation,
+            origin,
+            Npc.scale,
+            (-Npc.spriteDirection).ToSpriteDirection() // We love left facing sprites :)
+        );
         
-        MoveToWallPos(posY);
+        return false;
     }
-
-    private void MoveToWallPos(float posY)
-    {
-        if (Npc.position.Y > posY + 1f)
-        {
-            Npc.velocity.Y = -1f;
-        }
-        else if (Npc.position.Y < posY - 1f)
-        {
-            Npc.velocity.Y = 1f;
-        }
-        else
-        {
-            Npc.velocity.Y = 0f;
-            Npc.position.Y = posY;
-        }
-        
-        if (Npc.velocity.Y > 5f)
-        {
-            Npc.velocity.Y = 5f;
-        }
-
-        if (Npc.velocity.Y < -5f)
-        {
-            Npc.velocity.Y = -5f;
-        }
-    }
-
-    #endregion
 
     public override void LookTowards(Vector2 target, float power)
     {

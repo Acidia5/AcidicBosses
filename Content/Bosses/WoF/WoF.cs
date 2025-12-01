@@ -15,6 +15,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -26,12 +27,6 @@ public partial class WoF : AcidicNPCOverride
 {
     protected override int OverriddenNpc => NPCID.WallofFlesh;
     protected override bool BossEnabled => BossToggleConfig.Get().EnableWallOfFlesh;
-
-    public float WallDistance
-    {
-        get => Npc.ai[3];
-        set => Npc.ai[3] = value;
-    }
 
     public override void SetStaticDefaults()
     {
@@ -141,19 +136,27 @@ public partial class WoF : AcidicNPCOverride
     {
         phaseTracker.Serialize(binaryWriter);
         
-        binaryWriter.Write(WoFSystem.WofDrawAreaBottomLeft);
-        binaryWriter.Write(WoFSystem.WofDrawAreaBottomRight);
-        binaryWriter.Write(WoFSystem.WofDrawAreaTopRight);
-        binaryWriter.Write(WoFSystem.WofDrawAreaTopLeft);
+        binaryWriter.Write(WallDistance);
+        binaryWriter.Write(BottomLeftY);
+        binaryWriter.Write(BottomRightY);
+        binaryWriter.Write(TopRightY);
+        binaryWriter.Write(TopLeftY);
     }
 
     public override void ReceiveAcidAI(BitReader bitReader, BinaryReader binaryReader)
     {
         phaseTracker.Deserialize(binaryReader);
-        
-        WoFSystem.WofDrawAreaBottomLeft = binaryReader.ReadSingle();
-        WoFSystem.WofDrawAreaBottomRight = binaryReader.ReadSingle();
-        WoFSystem.WofDrawAreaTopRight = binaryReader.ReadSingle();
-        WoFSystem.WofDrawAreaTopLeft = binaryReader.ReadSingle();
+
+        WallDistance = binaryReader.ReadSingle();
+        BottomLeftY = binaryReader.ReadSingle();
+        BottomRightY = binaryReader.ReadSingle();
+        TopRightY = binaryReader.ReadSingle();
+        TopLeftY = binaryReader.ReadSingle();
+    }
+
+    public static WoF? GetInstance()
+    {
+        if (Main.wofNPCIndex < 0 || Main.wofNPCIndex >= Main.maxNPCs) return null;
+        return Main.npc[Main.wofNPCIndex]?.GetGlobalNPC<WoF>();
     }
 }

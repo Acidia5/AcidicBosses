@@ -24,6 +24,28 @@ public partial class WoF
     {
         FaceTarget = 1 << 0,
     }
+
+    public const float WallThickness = 100f;
+    
+    public float BottomLeftY = -1;
+    public float BottomRightY = -1;
+    public float TopLeftY = -1;
+    public float TopRightY = -1;
+    public float WallDistance;
+
+    public Rectangle LeftWallRect => new Rectangle(
+        (int)(Npc.Center.X - WallDistance - WallThickness),
+        (int)TopLeftY,
+        (int)WallThickness,
+        (int)(BottomLeftY - TopLeftY)
+    );
+    
+    public Rectangle RightWallRect => new Rectangle(
+        (int)(Npc.Center.X + WallDistance),
+        (int)TopRightY,
+        (int)WallThickness,
+        (int)(BottomRightY - TopRightY)
+    );
     
     private void SetWoFArea()
     {
@@ -34,9 +56,9 @@ public partial class WoF
     private void SetWoFAreaRight()
     {
         // Stolen from vanilla
-        var leftSideBlockX = (int) ((Npc.position.X + WallDistance) / 16f);
-        var rightSideBlockX = (int) ((Npc.position.X + Npc.width + WallDistance) / 16f);
-        var centerBlockY = (int) ((Npc.position.Y + Npc.height / 2f) / 16f);
+        var leftSideBlockX = (int) (RightWallRect.Left / 16f);
+        var rightSideBlockX = (int) (RightWallRect.Right / 16f);
+        var centerBlockY = (int) (Npc.Center.Y / 16f);
 
         // Find bottom of area
         var i = 0;
@@ -62,24 +84,24 @@ public partial class WoF
         }
 
         testBlockY += 4;
-        if (WoFSystem.WofDrawAreaBottomRight == -1)
+        if (BottomRightY == -1)
         {
-            WoFSystem.WofDrawAreaBottomRight = testBlockY * 16;
+            BottomRightY = testBlockY * 16;
         }
-        else if (WoFSystem.WofDrawAreaBottomRight > testBlockY * 16)
+        else if (BottomRightY > testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaBottomRight--;
-            if (WoFSystem.WofDrawAreaBottomRight < testBlockY * 16)
+            BottomRightY--;
+            if (BottomRightY < testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaBottomRight = testBlockY * 16;
+                BottomRightY = testBlockY * 16;
             }
         }
-        else if (WoFSystem.WofDrawAreaBottomRight < testBlockY * 16)
+        else if (BottomRightY < testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaBottomRight++;
-            if (WoFSystem.WofDrawAreaBottomRight > testBlockY * 16)
+            BottomRightY++;
+            if (BottomRightY > testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaBottomRight = testBlockY * 16;
+                BottomRightY = testBlockY * 16;
             }
         }
 
@@ -107,24 +129,24 @@ public partial class WoF
         }
 
         testBlockY -= 4;
-        if (WoFSystem.WofDrawAreaTopRight == -1)
+        if (TopRightY == -1)
         {
-            WoFSystem.WofDrawAreaTopRight = testBlockY * 16;
+            TopRightY = testBlockY * 16;
         }
-        else if (WoFSystem.WofDrawAreaTopRight > testBlockY * 16)
+        else if (TopRightY > testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaTopRight--;
-            if (WoFSystem.WofDrawAreaTopRight < testBlockY * 16)
+            TopRightY--;
+            if (TopRightY < testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaTopRight = testBlockY * 16;
+                TopRightY = testBlockY * 16;
             }
         }
-        else if (WoFSystem.WofDrawAreaTopRight < testBlockY * 16)
+        else if (TopRightY < testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaTopRight++;
-            if (WoFSystem.WofDrawAreaTopRight > testBlockY * 16)
+            TopRightY++;
+            if (TopRightY > testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaTopRight = testBlockY * 16;
+                TopRightY = testBlockY * 16;
             }
         }
     }
@@ -132,9 +154,9 @@ public partial class WoF
     private void SetWoFAreaLeft()
     {
         // Stolen from vanilla
-        var leftSideBlockX = (int) ((Npc.position.X - WallDistance) / 16f);
-        var rightSideBlockX = (int) ((Npc.position.X + Npc.width - WallDistance) / 16f);
-        var centerBlockY = (int) ((Npc.position.Y + Npc.height / 2f) / 16f);
+        var leftSideBlockX = (int) (LeftWallRect.Left / 16f);
+        var rightSideBlockX = (int) (LeftWallRect.Right / 16f);
+        var centerBlockY = (int) (Npc.Center.Y / 16f);
 
         // Find bottom of area
         var i = 0;
@@ -160,24 +182,24 @@ public partial class WoF
         }
 
         testBlockY += 4;
-        if (WoFSystem.WofDrawAreaBottomLeft == -1)
+        if (BottomLeftY == -1)
         {
-            WoFSystem.WofDrawAreaBottomLeft = testBlockY * 16;
+            BottomLeftY = testBlockY * 16;
         }
-        else if (WoFSystem.WofDrawAreaBottomLeft > testBlockY * 16)
+        else if (BottomLeftY > testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaBottomLeft--;
-            if (WoFSystem.WofDrawAreaBottomLeft < testBlockY * 16)
+            BottomLeftY--;
+            if (BottomLeftY < testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaBottomLeft = testBlockY * 16;
+                BottomLeftY = testBlockY * 16;
             }
         }
-        else if (WoFSystem.WofDrawAreaBottomLeft < testBlockY * 16)
+        else if (BottomLeftY < testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaBottomLeft++;
-            if (WoFSystem.WofDrawAreaBottomLeft > testBlockY * 16)
+            BottomLeftY++;
+            if (BottomLeftY > testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaBottomLeft = testBlockY * 16;
+                BottomLeftY = testBlockY * 16;
             }
         }
 
@@ -205,24 +227,24 @@ public partial class WoF
         }
 
         testBlockY -= 4;
-        if (WoFSystem.WofDrawAreaTopLeft == -1)
+        if (TopLeftY == -1)
         {
-            WoFSystem.WofDrawAreaTopLeft = testBlockY * 16;
+            TopLeftY = testBlockY * 16;
         }
-        else if (WoFSystem.WofDrawAreaTopLeft > testBlockY * 16)
+        else if (TopLeftY > testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaTopLeft--;
-            if (WoFSystem.WofDrawAreaTopLeft < testBlockY * 16)
+            TopLeftY--;
+            if (TopLeftY < testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaTopLeft = testBlockY * 16;
+                TopLeftY = testBlockY * 16;
             }
         }
-        else if (WoFSystem.WofDrawAreaTopLeft < testBlockY * 16)
+        else if (TopLeftY < testBlockY * 16)
         {
-            WoFSystem.WofDrawAreaTopLeft++;
-            if (WoFSystem.WofDrawAreaTopLeft > testBlockY * 16)
+            TopLeftY++;
+            if (TopLeftY > testBlockY * 16)
             {
-                WoFSystem.WofDrawAreaTopLeft = testBlockY * 16;
+                TopLeftY = testBlockY * 16;
             }
         }
     }
@@ -245,7 +267,12 @@ public partial class WoF
         return false;
     }
 
-    private Vector2 PartPosToWorldPos(PartPosition pos)
+    /// <summary>
+    /// Takes in a part position and returns the center position of that part
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns></returns>
+    public Vector2 PartPosToWorldPos(PartPosition pos)
     {
         var position = new Vector2();
 
@@ -253,15 +280,15 @@ public partial class WoF
         var areaTop = 0f;
         if ((pos & PartPosition.Right) != 0)
         {
-            position.X = Npc.position.X + WallDistance;
-            areaBottom = WoFSystem.WofDrawAreaBottomRight;
-            areaTop = WoFSystem.WofDrawAreaTopRight;
+            position.X = RightWallRect.Left;
+            areaBottom = BottomRightY;
+            areaTop = TopRightY;
         }
         else if ((pos & PartPosition.Left) != 0)
         {
-            position.X = Npc.position.X - WallDistance;
-            areaBottom = WoFSystem.WofDrawAreaBottomLeft;
-            areaTop = WoFSystem.WofDrawAreaTopLeft;
+            position.X = LeftWallRect.Right;
+            areaBottom = BottomLeftY;
+            areaTop = TopLeftY;
         }
 
         if ((pos & PartPosition.Bottom) != 0)
@@ -280,6 +307,15 @@ public partial class WoF
         }
 
         return position;
+    }
+
+    public Rectangle GetPartRect(PartPosition pos)
+    {
+        var center = PartPosToWorldPos(pos);
+        var rect = new Rectangle();
+        rect.Offset(center.ToPoint());
+        rect.Inflate(60, 60);
+        return rect;
     }
 
     private PartPosition RandomPartX()

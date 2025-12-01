@@ -1,6 +1,9 @@
 ﻿using AcidicBosses.Common.Textures;
+using Luminance.Common.Utilities;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -14,9 +17,7 @@ public class WoFMouth : AcidicNPC
     public override string BossHeadTexture =>
         $"Terraria/Images/NPC_Head_Boss_{NPCID.Sets.BossHeadTextures[NPCID.WallofFlesh]}";
 
-    private NPC wall => Main.npc[Main.wofNPCIndex];
-    
-    private float WallDistance => wall.ai[3];
+    private static WoF? Wall => WoF.GetInstance();
 
     private WoF.PartPosition MouthPos
     {
@@ -74,8 +75,6 @@ public class WoFMouth : AcidicNPC
         return null;
     }
 
-    #region AI
-
     private bool countUpTimer = false;
 
     private int AiTimer
@@ -86,14 +85,26 @@ public class WoFMouth : AcidicNPC
 
     public override void OnFirstFrame()
     {
+        if (Wall == null)
+        {
+            NPC.active = false;
+            return;
+        }
+        
         AiTimer = 0;
         NPC.realLife = Main.wofNPCIndex;
-        NPC.life = wall.life;
-        NPC.lifeMax = wall.lifeMax;
+        NPC.life = Wall.Npc.life;
+        NPC.lifeMax = Wall.Npc.lifeMax;
     }
 
     public override void AcidAI()
     {
+        if (Wall == null)
+        {
+            NPC.active = false;
+            return;
+        }
+        
         if (AiTimer > 0 && !countUpTimer)
             AiTimer--;
         
@@ -104,9 +115,9 @@ public class WoFMouth : AcidicNPC
         }
 
         NPC.realLife = Main.wofNPCIndex;
-        if (wall.life > 0)
+        if (Wall.Npc.life > 0)
         {
-            NPC.life = wall.life;
+            NPC.life = Wall.Npc.life;
         }
 
         if ((PartState & WoF.PartState.FaceTarget) != 0)
@@ -121,62 +132,45 @@ public class WoFMouth : AcidicNPC
         // Sync stuff
         if ((MouthPos & WoF.PartPosition.Left) != 0)
         {
-            NPC.position.X = wall.position.X - WallDistance;
             NPC.direction = 1;
             NPC.spriteDirection = NPC.direction;
-            MoveToCenterLeft();
         }
         else
         {
-            NPC.position.X = wall.position.X + WallDistance;
             NPC.direction = -1;
             NPC.spriteDirection = NPC.direction;
-            MoveToCenterRight();
         }
+        
+        var goalCenter = Wall.PartPosToWorldPos(MouthPos);
+        NPC.Center = NPC.Center with
+        {
+            X = goalCenter.X,
+            Y = MathHelper.Lerp(NPC.Center.Y, goalCenter.Y, 0.1f)
+        };
         
         if (countUpTimer)
             AiTimer++;
     }
 
-    #endregion
-    
-    private void MoveToCenterRight()
+    public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        var areaCenter = (WoFSystem.WofDrawAreaBottomRight + WoFSystem.WofDrawAreaTopRight) / 2 - NPC.height / 2;
-        MoveToCenter(areaCenter);
-    }
-    
-    private void MoveToCenterLeft()
-    {
-        var areaCenter = (WoFSystem.WofDrawAreaBottomLeft + WoFSystem.WofDrawAreaTopLeft) / 2 - NPC.height / 2;
-        MoveToCenter(areaCenter);
-    }
-    
-    private void MoveToCenter(float areaCenter)
-    {
-        if (NPC.position.Y > areaCenter + 1f)
-        {
-            NPC.velocity.Y = -1f;
-        }
-        else if (NPC.position.Y < areaCenter - 1f)
-        {
-            NPC.velocity.Y = 1f;
-        }
-        else
-        {
-            NPC.velocity.Y = 0f;
-            NPC.position.Y = areaCenter;
-        }
+        var tex = TextureAssets.Npc[Type];
+        var pos = NPC.Center - screenPos;
+        var origin = NPC.frame.Size() / 2f;
+        origin.X += 16f * NPC.spriteDirection;
         
-        if (NPC.velocity.Y > 5f)
-        {
-            NPC.velocity.Y = 5f;
-        }
-
-        if (NPC.velocity.Y < -5f)
-        {
-            NPC.velocity.Y = -5f;
-        }
+        Main.EntitySpriteDraw(
+            tex.Value,
+            pos,
+            NPC.frame,
+            drawColor,
+            NPC.rotation,
+            origin,
+            NPC.scale,
+            (-NPC.spriteDirection).ToSpriteDirection()
+        );
+        
+        return false;
     }
 
     public override void FindFrame(int frameHeight)
