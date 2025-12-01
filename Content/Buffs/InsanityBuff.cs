@@ -1,11 +1,14 @@
 using System;
 using AcidicBosses.Common.Textures;
+using AcidicBosses.Content.Bosses.Deerclops;
 using AcidicBosses.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.GameContent.Events;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace AcidicBosses.Content.Buffs;
@@ -20,7 +23,6 @@ public class InsanityBuff : ModBuff
 
     public override void Update(Player player, ref int buffIndex)
     {
-        player.dontStarveShader = true;
         player.GetModPlayer<InsanityModPlayer>().IsInsane = true;
     }
 }
@@ -58,15 +60,22 @@ public class InsanityOverlaySystem : ModSystem
         orig.Invoke(spritebatch);
 
         if (overlayOpacity <= 0f) return;
+        DrawTendrils(spritebatch);
+    }
 
+    private void DrawTendrils(SpriteBatch spritebatch)
+    {
         // This isn't fully accurate to Don't Starve, but I don't care.
         var tex = InsanityOverlay.Value;
-        var offset = Main.rand.NextVector2Unit() * 4 * overlayOpacity;
+        var screenRect = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
+        
         var scale = (int)MathHelper.Lerp(Buffer + 256, Buffer, EasingHelper.QuadOut(overlayOpacity));
-        var dest = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
-        dest.Inflate(scale, scale);
-        dest.Offset(offset.ToPoint());
-        spritebatch.Draw(tex, dest, Color.White * overlayOpacity);
+        screenRect.Inflate(scale, scale);
+        
+        // Tendrils layer 1
+        var offset = Main.rand.NextVector2Unit() * 4 * overlayOpacity;
+        screenRect.Offset(offset.ToPoint());
+        spritebatch.Draw(tex, screenRect, Color.White * overlayOpacity * 0.5f);
     }
 
     public override void PostUpdatePlayers()

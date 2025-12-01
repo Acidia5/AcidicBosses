@@ -94,7 +94,7 @@ public partial class Deerclops
         
         var xDist = MathF.Abs(Npc.Center.X - TargetPlayer.Center.X);
         var fullDist = Npc.Distance(TargetPlayer.Center);
-        if (xDist < 100 && fullDist < 150)
+        if (xDist < 500 && fullDist < 1000)
         {
             framesStuck = 0;
             return true;
@@ -103,12 +103,17 @@ public partial class Deerclops
         if (Npc.collideX || fullDist > 500) framesStuck++;
         else framesStuck = 0;
         
-        if (MathF.Abs(Npc.Center.X - TargetPlayer.Center.X) > 100)
+        BasicWalk();
+        
+        return false;
+    }
+    
+    private void BasicWalk()
+    {
+        if (MathF.Abs(Npc.Center.X - TargetPlayer.Center.X) > 100 || Npc.velocity.X == 0)
         {
             Npc.velocity.X = 3f * Npc.HorizontalDirectionTo(TargetPlayer.Center);
         }
-        
-        return false;
     }
 
     private AcidAnimation PrepareJumpAnimation()
@@ -181,6 +186,7 @@ public partial class Deerclops
         {
             var jumpCurve = anim.Data.Get<PiecewiseCurve>("movementCurve");
             var velX = anim.Data.Get<float>("velX");
+            velX = MathHelper.Clamp(velX, -15f, 15f);
             var velY = jumpCurve.Evaluate(1f) - jumpCurve.Evaluate((float)(jumpLength - 1) / jumpLength);
             Npc.velocity = new Vector2(velX, -velY);
             
@@ -211,6 +217,6 @@ public partial class Deerclops
 
     public override bool? CanFallThroughPlatforms(NPC npc)
     {
-        return TargetPlayer.Center.Y > BottomPos.Y;
+        return TargetPlayer.Center.Y > BottomPos.Y && Npc.velocity != Vector2.Zero;
     }
 }

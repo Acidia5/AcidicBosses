@@ -1,6 +1,8 @@
 using System.IO;
 using AcidicBosses.Common.Configs;
+using AcidicBosses.Content.Buffs;
 using AcidicBosses.Core.StateManagement;
+using AcidicBosses.Helpers;
 using Luminance.Common.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -29,6 +31,8 @@ public partial class Deerclops : AcidicNPCOverride
         set => Npc.Top = value - new Vector2(0, TileCollisionHeight);
     }
 
+    public const float DarknessRadius = 500f;
+
     // These are different to the vanilla values because she uses custom movement
     private bool useCollision = true;
     private bool useGravity = true;
@@ -37,10 +41,6 @@ public partial class Deerclops : AcidicNPCOverride
     {
         if (!ShouldOverride()) return;
 
-        // Demote Deerclops in progression to pre-skeletron
-        // 15k -> 11k on master
-        // I would move her in boss checklist if I could
-        entity.lifeMax = (int)(entity.lifeMax * 0.75f);
         entity.height -= GroundOffset;
     }
 

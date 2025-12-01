@@ -17,12 +17,7 @@ public partial class Deerclops
 
     private int animationProgress = 0;
 
-    private int slamHoldRaisedTime = 0;
-    private int slamHoldLoweredTime = 0;
-    private int flingHoldLoweredTime = 0;
-    private int flingHoldRaisedTime = 0;
-    private int roarHoldCloseTime = 0;
-    private int roarHoldOpenTime = 0;
+    private bool releaseAnimation = false;
 
     private Point? overrideAnimationFrame = null;
 
@@ -55,25 +50,28 @@ public partial class Deerclops
         return false;
     }
 
-    private void PlaySlamAnimation(int handsRaisedFrames, int handsLoweredFrames)
+    private void ReleaseHeldAnimation()
+    {
+        if (playingAnimation == null) return;
+        releaseAnimation = true;
+    }
+
+    private void StartSlam()
     {
         playingAnimation = Animations.Slam;
-        slamHoldRaisedTime = handsRaisedFrames;
-        slamHoldLoweredTime = handsLoweredFrames;
+        releaseAnimation = false;
     }
     
-    private void PlayFlingAnimation(int handsLoweredFrames, int handsRaisedFrames)
+    private void StartFling()
     {
         playingAnimation = Animations.Fling;
-        flingHoldRaisedTime = handsRaisedFrames;
-        flingHoldLoweredTime = handsLoweredFrames;
+        releaseAnimation = false;
     }
     
-    private void PlayRoarAnimation(int mouthClosedFrames, int mouthOpenFrames)
+    private void StartRoar()
     {
         playingAnimation = Animations.Roar;
-        roarHoldCloseTime = mouthClosedFrames;
-        roarHoldOpenTime = mouthOpenFrames;
+        releaseAnimation = false;
     }
 
     private void ManageWalkAnimation()
@@ -125,10 +123,11 @@ public partial class Deerclops
         if (animationProgress == 1)
         {
             var framesHeld = FrameCounter * 5f;
-            if (framesHeld >= slamHoldRaisedTime)
+            if (releaseAnimation)
             {
                 animationProgress++;
                 FrameCounter = 0;
+                releaseAnimation = false;
             }
             else
             {
@@ -140,11 +139,12 @@ public partial class Deerclops
         if (animationProgress == 2)
         {
             var framesHeld = FrameCounter * 5f;
-            if (framesHeld >= slamHoldLoweredTime)
+            if (releaseAnimation)
             {
                 animationProgress = 0;
                 FrameCounter = 0;
                 playingAnimation = null;
+                releaseAnimation = false;
             }
             else
             {
@@ -175,10 +175,11 @@ public partial class Deerclops
         if (animationProgress == 1)
         {
             var framesHeld = FrameCounter * 5f;
-            if (framesHeld >= flingHoldLoweredTime)
+            if (releaseAnimation)
             {
                 animationProgress++;
                 FrameCounter = 0;
+                releaseAnimation = false;
             }
             else
             {
@@ -190,11 +191,12 @@ public partial class Deerclops
         if (animationProgress == 2)
         {
             var framesHeld = FrameCounter * 5f;
-            if (framesHeld >= flingHoldRaisedTime)
+            if (releaseAnimation)
             {
                 animationProgress = 0;
                 FrameCounter = 0;
                 playingAnimation = null;
+                releaseAnimation = false;
             }
             else
             {
@@ -225,10 +227,11 @@ public partial class Deerclops
         if (animationProgress == 1)
         {
             var framesHeld = FrameCounter * 5f;
-            if (framesHeld >= roarHoldCloseTime)
+            if (releaseAnimation)
             {
                 animationProgress++;
                 FrameCounter = 0;
+                releaseAnimation = false;
             }
             else
             {
@@ -240,10 +243,11 @@ public partial class Deerclops
         if (animationProgress == 2)
         {
             var framesHeld = FrameCounter * 5f;
-            if (framesHeld >= roarHoldOpenTime)
+            if (releaseAnimation)
             {
                 animationProgress++;
                 FrameCounter = 0;
+                releaseAnimation = false;
             }
             else
             {
