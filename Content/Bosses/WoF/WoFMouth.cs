@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace AcidicBosses.Content.Bosses.WoF.AI;
+namespace AcidicBosses.Content.Bosses.WoF;
 
 [AutoloadBossHead]
 public class WoFMouth : AcidicNPC
@@ -14,19 +14,19 @@ public class WoFMouth : AcidicNPC
     public override string BossHeadTexture =>
         $"Terraria/Images/NPC_Head_Boss_{NPCID.Sets.BossHeadTextures[NPCID.WallofFlesh]}";
 
-    private NPC WoF => Main.npc[Main.wofNPCIndex];
+    private NPC wall => Main.npc[Main.wofNPCIndex];
     
-    private float WallDistance => WoF.ai[3];
+    private float WallDistance => wall.ai[3];
 
-    private WoFPartPosition MouthPos
+    private WoF.PartPosition MouthPos
     {
-        get => (WoFPartPosition) NPC.ai[0];
+        get => (WoF.PartPosition) NPC.ai[0];
         set => NPC.ai[0] = (float) value;
     }
     
-    private WoFPartState PartState
+    private WoF.PartState PartState
     {
-        get => (WoFPartState) NPC.ai[2];
+        get => (WoF.PartState) NPC.ai[2];
         set => NPC.ai[2] = (float) value;
     }
 
@@ -55,7 +55,7 @@ public class WoFMouth : AcidicNPC
         NPC.DeathSound = SoundID.NPCDeath10;
         NPC.noGravity = true;
         NPC.noTileCollide = true;
-        NPC.behindTiles = true;
+        NPC.behindTiles = false;
         NPC.knockBackResist = 0f;
         NPC.scale = 1.2f;
         NPC.value = 80000f;
@@ -88,8 +88,8 @@ public class WoFMouth : AcidicNPC
     {
         AiTimer = 0;
         NPC.realLife = Main.wofNPCIndex;
-        NPC.life = WoF.life;
-        NPC.lifeMax = WoF.lifeMax;
+        NPC.life = wall.life;
+        NPC.lifeMax = wall.lifeMax;
     }
 
     public override void AcidAI()
@@ -104,12 +104,12 @@ public class WoFMouth : AcidicNPC
         }
 
         NPC.realLife = Main.wofNPCIndex;
-        if (WoF.life > 0)
+        if (wall.life > 0)
         {
-            NPC.life = WoF.life;
+            NPC.life = wall.life;
         }
 
-        if ((PartState & WoFPartState.FaceTarget) != 0)
+        if ((PartState & WoF.PartState.FaceTarget) != 0)
         {
             LookTowards(Main.player[NPC.target].Center, 0.05f);
         }
@@ -119,16 +119,16 @@ public class WoFMouth : AcidicNPC
         }
         
         // Sync stuff
-        if ((MouthPos & WoFPartPosition.Left) != 0)
+        if ((MouthPos & WoF.PartPosition.Left) != 0)
         {
-            NPC.position.X = WoF.position.X - WallDistance;
+            NPC.position.X = wall.position.X - WallDistance;
             NPC.direction = 1;
             NPC.spriteDirection = NPC.direction;
             MoveToCenterLeft();
         }
         else
         {
-            NPC.position.X = WoF.position.X + WallDistance;
+            NPC.position.X = wall.position.X + WallDistance;
             NPC.direction = -1;
             NPC.spriteDirection = NPC.direction;
             MoveToCenterRight();

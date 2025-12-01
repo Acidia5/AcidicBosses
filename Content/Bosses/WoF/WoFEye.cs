@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 
-namespace AcidicBosses.Content.Bosses.WoF.AI;
+namespace AcidicBosses.Content.Bosses.WoF;
 
 public class WoFEye : AcidicNPCOverride
 {
@@ -11,21 +11,21 @@ public class WoFEye : AcidicNPCOverride
     protected override bool BossEnabled => BossToggleConfig.Get().EnableWallOfFlesh;
 
 
-    private NPC WoF => Main.npc[Main.wofNPCIndex];
+    private NPC wall => Main.npc[Main.wofNPCIndex];
     
-    private WoFPartPosition EyePos
+    private WoF.PartPosition EyePos
     {
-        get => (WoFPartPosition) Npc.ai[0];
+        get => (WoF.PartPosition) Npc.ai[0];
         set => Npc.ai[0] = (float) value;
     }
 
-    private WoFPartState PartState
+    private WoF.PartState PartState
     {
-        get => (WoFPartState) Npc.ai[2];
+        get => (WoF.PartState) Npc.ai[2];
         set => Npc.ai[2] = (float) value;
     }
     
-    private float WallDistance => WoF.ai[3];
+    private float WallDistance => wall.ai[3];
 
     #region AI
 
@@ -41,8 +41,9 @@ public class WoFEye : AcidicNPCOverride
     {
         AiTimer = 0;
         Npc.realLife = Main.wofNPCIndex;
-        Npc.life = WoF.life;
-        Npc.lifeMax = WoF.lifeMax;
+        Npc.life = wall.life;
+        Npc.lifeMax = wall.lifeMax;
+        Npc.behindTiles = false;
     }
 
     public override bool AcidAI(NPC npc)
@@ -57,12 +58,12 @@ public class WoFEye : AcidicNPCOverride
         }
 
         Npc.realLife = Main.wofNPCIndex;
-        if (WoF.life > 0)
+        if (wall.life > 0)
         {
-            Npc.life = WoF.life;
+            Npc.life = wall.life;
         }
         
-        if ((PartState & WoFPartState.FaceTarget) != 0)
+        if ((PartState & WoF.PartState.FaceTarget) != 0)
         {
             LookTowards(Main.player[Npc.target].Center, 0.05f);
         }
@@ -72,16 +73,16 @@ public class WoFEye : AcidicNPCOverride
         }
         
         // Sync stuff
-        if ((EyePos & WoFPartPosition.Left) != 0)
+        if ((EyePos & WoF.PartPosition.Left) != 0)
         {
-            Npc.position.X = WoF.position.X - WallDistance;
+            Npc.position.X = wall.position.X - WallDistance;
             Npc.direction = 1;
             Npc.spriteDirection = Npc.direction;
             MoveToWallPosLeft();
         }
         else
         {
-            Npc.position.X = WoF.position.X + WallDistance;
+            Npc.position.X = wall.position.X + WallDistance;
             Npc.direction = -1;
             Npc.spriteDirection = Npc.direction;
             MoveToWallPosRight();
@@ -102,7 +103,7 @@ public class WoFEye : AcidicNPCOverride
     private void MoveToWallPosRight()
     {
         var posY = (WoFSystem.WofDrawAreaBottomRight + WoFSystem.WofDrawAreaTopRight) / 2f;
-        if ((EyePos & WoFPartPosition.Top) != 0)
+        if ((EyePos & WoF.PartPosition.Top) != 0)
         {
             posY = (posY + WoFSystem.WofDrawAreaBottomRight) / 2f;
         }
@@ -118,7 +119,7 @@ public class WoFEye : AcidicNPCOverride
     private void MoveToWallPosLeft()
     {
         var posY = (WoFSystem.WofDrawAreaBottomLeft + WoFSystem.WofDrawAreaTopLeft) / 2f;
-        if ((EyePos & WoFPartPosition.Top) != 0)
+        if ((EyePos & WoF.PartPosition.Top) != 0)
         {
             posY = (posY + WoFSystem.WofDrawAreaBottomLeft) / 2f;
         }

@@ -59,7 +59,7 @@ public class WoFSystem : ModSystem
 
 		if (!self.gross && self.position.Y > (float)((Main.maxTilesY - 250) * 16) && self.position.X > leftWallX - 1920f && self.position.X < rightWallX + 1920f)
 		{
-			self.AddBuff(37, 10);
+			self.AddBuff(BuffID.Horrified, 10);
 			SoundEngine.PlaySound(SoundID.NPCDeath10, WoF.Center);
 		}
 		
