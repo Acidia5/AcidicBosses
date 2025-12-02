@@ -39,6 +39,7 @@ public partial class TwinsController
             
             new GlowStarParticle(spawnPos + Retinazer.Front, Vector2.Zero, partRot, Color.White, 30)
             {
+                GlowColor = Color.Red,
                 AngularVelocity = angVel,
                 IgnoreLighting = true,
                 Scale = Vector2.One,
@@ -85,6 +86,7 @@ public partial class TwinsController
 
                 new GlowStarParticle(pos, Vector2.Zero, angle, Color.White, 60)
                 {
+                    GlowColor = Color.Green,
                     IgnoreLighting = true,
                     OnUpdate = p =>
                     {

@@ -52,6 +52,7 @@ public class KingSlimeCrownLaser : DeathrayBase
             )
             {
                 IgnoreLighting = true,
+                GlowColor = Color.Red,
                 OnUpdate = p =>
                 {
                     var scale = scaleCurve.Evaluate(p.LifetimeRatio);

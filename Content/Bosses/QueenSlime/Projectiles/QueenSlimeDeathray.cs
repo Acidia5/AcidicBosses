@@ -86,7 +86,8 @@ public class QueenSlimeDeathray : DeathrayBase
         var tex = AtlasManager.GetTexture("AcidicBosses.GlowStar");
         var scaleOffset = Main.rand.NextFloat(-0.2f, 0.2f);
         
-        Main.spriteBatch.Draw(tex, pos, tex.Frame, Color.White, rot, tex.Frame.Size() / 2f, scale: Vector2.One * (3f + scaleOffset));
+        Main.spriteBatch.Draw(tex, pos, tex.Frame, Color.Purple with { A = 0 }, rot, tex.Frame.Size() / 2f, scale: Vector2.One * (3f + scaleOffset) * 1.25f);
+        Main.spriteBatch.Draw(tex, pos, tex.Frame, Color.White  with { A = 0 }, rot, tex.Frame.Size() / 2f, scale: Vector2.One * (3f + scaleOffset));
         return false;
     }
 }

@@ -60,6 +60,7 @@ public class RetLaserIndicator : BaseLineProjectile
         new GlowStarParticle(Projectile.position, Vector2.Zero, Projectile.rotation, Color.White, 30)
         {
             IgnoreLighting = true,
+            GlowColor = Color.Red,
             OnUpdate = p =>
             {
                 var scale = scaleCurve.Evaluate(p.LifetimeRatio);
@@ -81,6 +82,7 @@ public class RetLaserIndicator : BaseLineProjectile
                 15
             )
             {
+                GlowColor = Color.Red,
                 AngularVelocity = Main.rand.NextFloat(0.1f),
                 OnUpdate = p =>
                 {

@@ -726,11 +726,12 @@ public class KingSlime : AcidicNPCOverride
                     Npc.Center,
                     Vector2.Zero,
                     from.DirectionTo(to).ToRotation() + MathHelper.PiOver2,
-                    Color.Red,
+                    Color.White,
                     15
                 )
                 {
                     IgnoreLighting = false,
+                    GlowColor = Color.Red,
                     OnUpdate = particle =>
                     {
                         // Move to teleport
@@ -771,6 +772,7 @@ public class KingSlime : AcidicNPCOverride
                 )
                 {
                     IgnoreLighting = true,
+                    GlowColor = Color.Red,
                     OnUpdate = p =>
                     {
                         var scale = scaleCurve.Evaluate(p.LifetimeRatio);

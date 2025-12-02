@@ -75,6 +75,9 @@ public partial class QueenSlime : AcidicNPCOverride
         }
         return solidGround;
     }
-    
-    
+
+    public override void ModifyHitPlayer(NPC npc, Player target, ref Player.HurtModifiers modifiers)
+    {
+        modifiers.Cancel();
+    }
 }
