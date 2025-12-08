@@ -33,6 +33,13 @@ public partial class WoF
     public float TopRightY = -1;
     public float WallDistance;
 
+    private float EyeOffsetTL = 0f;
+    private float EyeOffsetBL = 0f;
+    private float EyeOffsetTR = 0f;
+    private float EyeOffsetBR = 0f;
+    private float MouthOffsetL = 0f;
+    private float MouthOffsetR = 0f;
+
     public Rectangle LeftWallRect => new Rectangle(
         (int)(Npc.Center.X - WallDistance - WallThickness),
         (int)TopLeftY,

@@ -66,6 +66,7 @@ NPCs: {
 	EasyPixieNPC.DisplayName: Pixie
 	EoWServant.DisplayName: Servant of the Eater
 	TwinsController.DisplayName: Twins Controller
+	ShadowHand.DisplayName: Shadow Hand
 }
 
 Items: {
@@ -165,4 +166,7 @@ Configs: {
 	}
 }
 
-Bestiary.EoWServant: This miniature worm exists to serve and protect its master as it devours all it can.
+Bestiary: {
+	EoWServant: This miniature worm exists to serve and protect its master as it devours all it can.
+	ShadowHand: A hand made of shadow that reaches out from the darkness.
+}

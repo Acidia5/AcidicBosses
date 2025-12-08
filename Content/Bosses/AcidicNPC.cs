@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using AcidicBosses.Common.Effects;
+using AcidicBosses.Core.Animation;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
@@ -15,6 +16,8 @@ namespace AcidicBosses.Content.Bosses;
 public abstract class AcidicNPC : ModNPC
 {
     protected bool IsFirstFrame = true;
+    
+    private AcidAnimation? backgroundAnimation;
 
     public virtual void OnFirstFrame()
     {
@@ -29,6 +32,12 @@ public abstract class AcidicNPC : ModNPC
             IsFirstFrame = false;
         }
         AcidAI();
+        
+        if (backgroundAnimation?.RunAnimation() ?? false)
+        {
+            backgroundAnimation.Reset();
+            backgroundAnimation = null;
+        }
     }
 
     public virtual void AcidAI() { }
@@ -71,5 +80,11 @@ public abstract class AcidicNPC : ModNPC
     {
         var player = Main.player[npc.target];
         return !player.active || player.dead;
+    }
+    
+    public void PlayBackgroundAnimation(AcidAnimation anim)
+    {
+        if (backgroundAnimation != null) backgroundAnimation.Reset();
+        backgroundAnimation = anim;
     }
 }

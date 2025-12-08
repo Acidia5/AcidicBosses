@@ -34,4 +34,20 @@ public partial class Deerclops
             ProjectileID.IceSpike, Npc.damage, 4f, ai1: debrisId);
         return proj;
     }
+
+    private NPC? NewShadowHand(float angle)
+    {
+        if (!AcidUtils.IsServer()) return null;
+
+        var npc = NPC.NewNPCDirect(
+            Npc.GetSource_FromAI(),
+            Npc.Center + angle.ToRotationVector2() * DarknessRadius,
+            ModContent.NPCType<ShadowHand>(),
+            Npc.whoAmI,
+            angle,
+            Main.rand.NextFloat(2.5f, 3.5f)
+        );
+
+        return npc;
+    }
 }

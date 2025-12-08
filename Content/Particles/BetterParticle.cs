@@ -101,7 +101,7 @@ public abstract class BetterParticle : Particle
 
         if (Shrink) Scale = Vector2.Lerp(startSize, Vector2.Zero, LifetimeRatio);
 
-        if (FadeColor) DrawColor = Color.Lerp(DrawColor, Color.Transparent, LifetimeRatio);
+        if (FadeColor) Opacity = MathHelper.Lerp(1f, 0f, LifetimeRatio);
         
         if (EmitLight) Main.QueueMainThreadAction(() =>
         {
@@ -119,7 +119,7 @@ public abstract class BetterParticle : Particle
                 Texture,
                 Position - Main.screenPosition,
                 Frame,
-                DrawColor.MultiplyRGBA(GlowColor.Value) * Opacity,
+                GlowColor.Value * Opacity,
                 Rotation,
                 null,
                 Scale * 1.25f,

@@ -1,6 +1,5 @@
 using System.IO;
 using AcidicBosses.Common.Configs;
-using AcidicBosses.Content.Buffs;
 using AcidicBosses.Core.StateManagement;
 using AcidicBosses.Helpers;
 using Luminance.Common.Utilities;
@@ -31,7 +30,7 @@ public partial class Deerclops : AcidicNPCOverride
         set => Npc.Top = value - new Vector2(0, TileCollisionHeight);
     }
 
-    public const float DarknessRadius = 500f;
+    public const float DarknessRadius = 750f;
 
     // These are different to the vanilla values because she uses custom movement
     private bool useCollision = true;
@@ -68,20 +67,22 @@ public partial class Deerclops : AcidicNPCOverride
         {
             npc.TargetClosest();
         }
-
+         
+        DrawUpdate();
+        phaseTracker.RunPhaseAI();
+        
+        if (useGravity) ApplyGravity();
+        if (useCollision) ApplyCollision();
+        
         // Force snow biome for nearby players
         foreach (var player in Main.player)
         {
             if (!player.active) continue;
             if (Npc.Distance(player.Center) > 10_000) continue;
             player.ZoneSnow = true;
+            
+            Main.LocalPlayer.AddBuff(ModContent.BuffType<InsanityBuff>(), 2);
         }
-        
-        DrawUpdate();
-        phaseTracker.RunPhaseAI();
-        
-        if (useGravity) ApplyGravity();
-        if (useCollision) ApplyCollision();
         
         return false;
     }

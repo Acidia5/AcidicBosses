@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Assets\Atlases\" />
+    <Folder Include="Content\Bosses\Deerclops\Projectiles\" />
     <Folder Include="Content\Bosses\WoF\Behaviors\" />
   </ItemGroup>
 </Project>

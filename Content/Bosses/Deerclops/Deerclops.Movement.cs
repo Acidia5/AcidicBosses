@@ -100,7 +100,7 @@ public partial class Deerclops
             return true;
         }
         
-        if (Npc.collideX || fullDist > 500) framesStuck++;
+        if (Npc.collideX || fullDist > 1000) framesStuck++;
         else framesStuck = 0;
         
         BasicWalk();
