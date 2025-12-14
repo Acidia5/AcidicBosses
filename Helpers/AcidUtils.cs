@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.ID;
 
 namespace AcidicBosses.Helpers;
@@ -45,5 +47,24 @@ public static class AcidUtils
         newColor.A = (byte) MathHelper.Clamp(a.A + b.A, 0, 255);
         
         return newColor;
+    }
+    
+    // Copied from Main.DrawPrettyStarSparkle() which is private
+    // Slightly modified for simplicity
+    public static void DrawPrettyStarSparkle(float opacity, SpriteEffects dir, Vector2 drawPos, Color drawColor, Color shineColor, float rotation, Vector2 scale, Vector2 fatness) {
+        Texture2D sparkleTexture = TextureAssets.Extra[ExtrasID.SharpTears].Value;
+        Color bigColor = shineColor * opacity * 0.5f;
+        bigColor.A = 0;
+        Vector2 origin = sparkleTexture.Size() / 2f;
+        Color smallColor = drawColor * 0.5f;
+        Vector2 scaleLeftRight = new Vector2(fatness.X * 0.5f, scale.X);
+        Vector2 scaleUpDown = new Vector2(fatness.Y * 0.5f, scale.Y);
+        
+        // Bright, large part
+        Main.EntitySpriteDraw(sparkleTexture, drawPos, null, bigColor, MathHelper.PiOver2 + rotation, origin, scaleLeftRight, dir);
+        Main.EntitySpriteDraw(sparkleTexture, drawPos, null, bigColor, 0f + rotation, origin, scaleUpDown, dir);
+        // Dim, small part
+        Main.EntitySpriteDraw(sparkleTexture, drawPos, null, smallColor, MathHelper.PiOver2 + rotation, origin, scaleLeftRight * 0.6f, dir);
+        Main.EntitySpriteDraw(sparkleTexture, drawPos, null, smallColor, 0f + rotation, origin, scaleUpDown * 0.6f, dir);
     }
 }

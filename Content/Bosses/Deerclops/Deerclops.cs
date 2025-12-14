@@ -32,6 +32,8 @@ public partial class Deerclops : AcidicNPCOverride
 
     public const float DarknessRadius = 750f;
 
+    public bool RetractShadowHands = false;
+
     // These are different to the vanilla values because she uses custom movement
     private bool useCollision = true;
     private bool useGravity = true;

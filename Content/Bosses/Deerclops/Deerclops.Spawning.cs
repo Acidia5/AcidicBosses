@@ -1,3 +1,4 @@
+using AcidicBosses.Content.Bosses.Deerclops.Projectiles;
 using AcidicBosses.Content.Bosses.QueenSlime.Projectiles;
 using AcidicBosses.Helpers;
 using Microsoft.Xna.Framework;
@@ -22,6 +23,14 @@ public partial class Deerclops
         if (!AcidUtils.IsServer()) return null;
         var proj = ProjHelper.NewUnscaledProjectile(Npc.GetSource_FromAI(), position, angle.ToRotationVector2(),
             ProjectileID.DeerclopsIceSpike, Npc.damage, 4f, ai1: scale);
+        return proj;
+    }
+    
+    private Projectile? NewIceShot(Vector2 position, Vector2 velocity)
+    {
+        if (!AcidUtils.IsServer()) return null;
+        var proj = ProjHelper.NewUnscaledProjectile(Npc.GetSource_FromAI(), position, velocity,
+            ModContent.ProjectileType<IceShot>(), Npc.damage, 4f);
         return proj;
     }
     

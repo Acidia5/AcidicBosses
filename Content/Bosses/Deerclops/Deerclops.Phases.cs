@@ -24,6 +24,8 @@ public partial class Deerclops
             new AttackState(ApproachPlayer, 15),
             new AttackState(Attack_IceSpikes, 120),
             new AttackState(Attack_SummonShadowHands, 120),
+            new AttackState(Attack_IceShots, 120),
+            new AttackState(Attack_RetractShadowHands, 120)
         ]);
     }
 

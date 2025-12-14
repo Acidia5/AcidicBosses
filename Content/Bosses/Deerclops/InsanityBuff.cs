@@ -7,6 +7,7 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.GameContent.Events;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace AcidicBosses.Content.Bosses.Deerclops;
@@ -26,6 +27,15 @@ public class InsanityBuff : ModBuff
         if (NPC.deerclopsBoss < 0 || NPC.deerclopsBoss >= Main.maxNPCs) return;
         var deerclops = Main.npc[NPC.deerclopsBoss];
         if (deerclops == null || !deerclops.active) return;
+
+        // Dark smoke around edge
+        for (var i = 0; i < 3; i++)
+        {
+            var dustPos = Main.rand.NextVector2Unit() 
+                          * Main.rand.NextFloat(Deerclops.DarknessRadius - 100f, Deerclops.DarknessRadius)
+                          + deerclops.Center;
+            Dust.NewDust(dustPos, 0, 0, DustID.Smoke, newColor: Color.Black, Scale: 1.5f);
+        }
 
         if (player.Distance(deerclops.Center) > Deerclops.DarknessRadius)
         {

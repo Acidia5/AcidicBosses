@@ -46,7 +46,7 @@ public class ShadowHand : AcidicNPC
         NPC.lifeMax = 20;
         NPC.damage = 20;
         NPC.defense = 0;
-        NPC.knockBackResist = 0f;
+        NPC.knockBackResist = 1.5f;
         
         NPC.HitSound = SoundID.NPCHit36;
         NPC.DeathSound = SoundID.NPCDeath39;
@@ -82,7 +82,7 @@ public class ShadowHand : AcidicNPC
 
         var spawnDir = SpawnAngle.ToRotationVector2();
 
-        new SharpTearParticle(
+        new SharpTearNoBlendParticle(
             deerclops.Center,
             Vector2.Zero,
             SpawnAngle + MathHelper.PiOver2,
@@ -90,14 +90,23 @@ public class ShadowHand : AcidicNPC
             30
         )
         {
-            GlowColor = Color.Purple,
+            GlowColor = Color.Purple with { A = 0 },
             Shrink = true,
+            Scale = new Vector2(3f),
             OnUpdate = p =>
             {
                 var ease = EasingHelper.QuadOut(p.LifetimeRatio);
                 p.Position = Vector2.Lerp(deerclops.Center, NPC.Center, ease);
+                Dust.NewDust(p.Position, 0, 0, DustID.Smoke, newColor: Color.Black);
+                Dust.NewDust(p.Position, 0, 0, DustID.PurpleTorch);
             }
         }.Spawn();
+        
+        for (var i = 0; i < 20; i++)
+        {
+            var vel = Main.rand.NextVector2Circular(5f, 5f);
+            Dust.NewDust(deerclops.Center, 0, 0, DustID.Smoke, vel.X, vel.Y, newColor: Color.Black);
+        }
     }
 
     public override void AcidAI()
@@ -115,13 +124,95 @@ public class ShadowHand : AcidicNPC
             return;
         }
 
+        var reworkedDeer = deerclops.GetGlobalNPC<Deerclops>();
+
+        if (AcidUtils.IsClient())
+        {
+            var edge = deerclops.Center + SpawnAngle.ToRotationVector2() * (Deerclops.DarknessRadius + 128);
+            var midpoint = NPC.Center + (NPC.rotation.ToRotationVector2() * -1f * 128f);
+
+            const int maxPoints = 32;
+            for (var i = 0; i < maxPoints; i++)
+            {
+                var p = (float)i / maxPoints;
+                p = EasingHelper.QuadOut(p);
+                var pos = Utilities.QuadraticBezier(NPC.Center, midpoint, edge, p);
+
+                if (Main.rand.NextBool(1, 50))
+                {
+                    Dust.NewDust(pos, 0, 0, DustID.Smoke, newColor: Color.Black);
+                }
+            }
+            
+            if (Main.rand.NextBool(1, 5))
+            {
+                Dust.NewDust(NPC.Center, 0, 0, DustID.Smoke, newColor: Color.Black);
+            }
+            
+            if (Main.rand.NextBool(1, 50))
+            {
+                Dust.NewDust(NPC.Center, 0, 0, DustID.PurpleTorch);
+            }
+        }
+
         // Always go after the closest player
         NPC.TargetClosest();
         var targetPlayer = Main.player[NPC.target];
         NPC.FaceTarget();
         NPC.rotation = NPC.DirectionTo(targetPlayer.Center).ToRotation();
+
+        if (!reworkedDeer.RetractShadowHands)
+        {
+            NPC.SimpleFlyMovement(NPC.rotation.ToRotationVector2() * 3f, 0.1f);
+        }
+        else
+        {
+            var edge = deerclops.Center + SpawnAngle.ToRotationVector2() * (Deerclops.DarknessRadius + 128);
+            NPC.SimpleFlyMovement(NPC.DirectionTo(edge) * 5f, 0.2f);
+
+            if (NPC.Distance(deerclops.Center) > Deerclops.DarknessRadius)
+            {
+                NPC.active = false;
+            }
+        }
+    }
+
+    public override void HitEffect(NPC.HitInfo hit)
+    {
+        var deer = Main.npc[NPC.deerclopsBoss];
+        if (deer == null || !deer.active) return;
         
-        NPC.SimpleFlyMovement(NPC.rotation.ToRotationVector2() * 3f, 0.1f);
+        if (AcidUtils.IsClient())
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                var vel = Main.rand.NextVector2Circular(3f, 3f);
+                Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.Smoke, vel.X, vel.Y, newColor: Color.Black);
+            }
+            
+            if (NPC.life <= 0f)
+            {
+                for (var i = 0; i < 20; i++)
+                {
+                    Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.Smoke, newColor: Color.Black);
+                    Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.PurpleTorch);
+                }
+                
+                var edge = deer.Center + SpawnAngle.ToRotationVector2() * (Deerclops.DarknessRadius + 128);
+                var midpoint = NPC.Center + (NPC.rotation.ToRotationVector2() * -1f * 128f);
+
+                const int maxPoints = 32;
+                for (var i = 0; i < maxPoints; i++)
+                {
+                    var p = (float)i / maxPoints;
+                    p = EasingHelper.QuadOut(p);
+                    var pos = Utilities.QuadraticBezier(NPC.Center, midpoint, edge, p);
+                    
+                    Dust.NewDust(pos, 0, 0, DustID.Smoke, newColor: Color.Black);
+                    Dust.NewDust(pos, 0, 0, DustID.Smoke, newColor: Color.Black);
+                }
+            }
+        }
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
@@ -153,6 +244,20 @@ public class ShadowHand : AcidicNPC
             effects |= SpriteEffects.FlipVertically;
         }
         
+        var backglowColor = Color.Purple with { A = 0 } * (1f / 12f);
+        var backglowArea = 2f;
+
+        for (var i = 0; i < 12; i++)
+        {
+            var drawOffset = (NPC.rotation + MathHelper.Lerp(0f, MathHelper.TwoPi, i / 12f)).ToRotationVector2() *
+                             (backglowArea + 0.25f);
+            Main.spriteBatch.Draw(
+                tex.Value, NPC.Center - screenPos + drawOffset,
+                frame, backglowColor,
+                NPC.rotation, origin, NPC.scale - 0.01f,
+                effects, 0f);
+        }
+        
         Main.EntitySpriteDraw(
             tex.Value,
             NPC.Center - screenPos,
@@ -163,7 +268,8 @@ public class ShadowHand : AcidicNPC
             1f,
             effects
         );
-        
+
+
         DrawTether();
         
         return false;
@@ -189,7 +295,7 @@ public class ShadowHand : AcidicNPC
         var connectionTex = ChainTex;
         var renderSettings = new PrimitiveSettings(
             x => MathHelper.Lerp(ChainTex.Width() * 0.5f, ChainTex.Width() * 0.4f, x),
-            x => Color.Black,
+            x => Color.Black * 0.75f,
             Shader: ShaderManager.GetShader("AcidicBosses.Rope")
         );
         renderSettings.Shader.SetTexture(connectionTex, 1, SamplerState.PointClamp);
