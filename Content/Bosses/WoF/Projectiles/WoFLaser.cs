@@ -45,10 +45,11 @@ public class WoFLaser : BaseLineProjectile
     {
         var scaleCurve = new PiecewiseCurve()
             .Add(EasingCurves.Quadratic, EasingType.Out, 0f, 1f, 4f);
-
+        
         new GlowStarParticle(Projectile.position, Vector2.Zero, Projectile.rotation, Color.White, 30)
         {
             IgnoreLighting = true,
+            GlowColor = Color.Purple,
             OnUpdate = p =>
             {
                 var scale = scaleCurve.Evaluate(p.LifetimeRatio);

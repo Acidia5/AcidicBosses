@@ -47,11 +47,6 @@ partial class AcidicBosses : Mod
     
     public override void Load()
     {
-        // Disable Calamity messing with vanilla boss AI
-        if (ModLoader.TryGetMod("CalamityMod", out var calamity))
-        {
-            var disableNonRevField = calamity.GetType().GetField("ExternalFlag_DisableNonRevBossAI", BindingFlags.Public | BindingFlags.Static);
-            disableNonRevField.SetValue(null, true);
-        }
+        
     }
 }

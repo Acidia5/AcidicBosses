@@ -1,6 +1,7 @@
 ﻿using AcidicBosses.Common.Textures;
 using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.Particles.Animated;
+using AcidicBosses.Core.Graphics.DustManagement;
 using AcidicBosses.Helpers;
 using Luminance.Common.Utilities;
 using Microsoft.Xna.Framework;
@@ -58,6 +59,12 @@ public class Muramasa : ModProjectile
             var puff = new BigPuffParticle(Projectile.Center, Vector2.Zero, 0f, Color.White, 30);
             puff.Opacity = 0.5f;
             puff.Spawn();
+            
+            for (var i = 0; i < 5; i++)
+            {
+                var vel = Main.rand.NextVector2Circular(2f, 2f);
+                Dust.NewDustPerfect(Projectile.Center, DustID.DungeonWater, vel);
+            }
         }
 
         // Spin
@@ -71,12 +78,76 @@ public class Muramasa : ModProjectile
         }
         else
         {
+            // Projectile.velocity = Vector2.Lerp(Projectile.velocity, , 0.15f);
             Projectile.velocity = oldVel;
             Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver4;
             Projectile.damage = Projectile.originalDamage;
         }
+        
+        // Takeoff effect
+        if ((int)aiTime == rotationTime)
+        {
+            var centerOffset = Projectile.Hitbox.Size() / 2;
+            centerOffset.Y *= -1;
+            centerOffset = centerOffset.RotatedBy(Projectile.rotation);
+            var swordBack = Projectile.Center + centerOffset;
+            var swordEnd = Projectile.Center - centerOffset;
+
+            for (var i = 0; i < 15; i++)
+            {
+                var velOff = oldVel.Length() * 0.5f;
+                var vel = -oldVel * 0.5f + Main.rand.NextVector2Circular(velOff, velOff);
+                var d = Dust.NewDustPerfect(
+                    swordBack,
+                    DustID.DungeonWater,
+                    vel
+                );
+                d.noGravity = true;
+            }
+            
+            for (var i = 0; i < 25; i++)
+            {
+                var velOff = oldVel.Length() * 0.25f;
+                var vel = -oldVel * 0.5f + Main.rand.NextVector2Circular(velOff, velOff);
+                Dust.NewDustPerfect(
+                    swordBack,
+                    DustID.Smoke,
+                    vel
+                );
+            }
+
+            new SmokeRingParticle(
+                swordBack,
+                -oldVel * 0.25f,
+                oldVel.ToRotation() - MathHelper.PiOver2,
+                Color.White,
+                60
+            )
+            {
+                Opacity = 0.5f
+            }.Spawn();
+        }
 
         Lighting.AddLight(Projectile.Center, Color.Cyan.ToVector3());
+        
+        // Dust
+        if (Main.rand.NextBool(0.5f))
+        {
+            var centerOffset = Projectile.Hitbox.Size() / 2;
+            centerOffset.Y *= -1;
+            centerOffset = centerOffset.RotatedBy(Projectile.rotation);
+            var swordBack = Projectile.Center + centerOffset;
+            var swordEnd = Projectile.Center - centerOffset;
+            var pos = Vector2.Lerp(swordBack, swordEnd, Main.rand.NextFloat());
+            
+            var d = Dust.NewDustDirect(
+                pos,
+                0,
+                0,
+                DustID.DungeonWater
+            );
+            d.noGravity = true;
+        }
 
         aiTime++;
     }
@@ -86,6 +157,9 @@ public class Muramasa : ModProjectile
         var texture = ModContent.Request<Texture2D>(Texture).Value;
         ProjHelper.DrawAfterimages(Projectile, texture, ref lightColor, 2);
         ProjHelper.Draw(Projectile, texture, ref lightColor);
+        
+        var effectPath = TextureRegistry.TerrariaProjectile(ProjectileID.Muramasa);
+        var effectTexture = ModContent.Request<Texture2D>(effectPath).Value;
 
         return false;
     }

@@ -1,6 +1,9 @@
 ﻿using AcidicBosses.Common.Textures;
+using AcidicBosses.Core.Graphics.Sprites;
+using AcidicBosses.Helpers;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.GameContent.Drawing;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -35,7 +38,15 @@ public class IchorShot : ModProjectile
         {
             if (!Main.rand.NextBool(3))
             {
-                var dustId = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Ichor, 0f, 0f, 100);
+                var dustId = Dust.NewDust(
+                    Projectile.position,
+                    Projectile.width,
+                    Projectile.height,
+                    DustID.Ichor,
+                    0f, 0f,
+                    100,
+                    Scale: 1.5f
+                );
                 Main.dust[dustId].position = (Main.dust[dustId].position + Projectile.Center) / 2f;
                 Main.dust[dustId].noGravity = true;
                 var dust = Main.dust[dustId];
@@ -53,6 +64,31 @@ public class IchorShot : ModProjectile
 
     public override void OnHitPlayer(Player target, Player.HurtInfo info)
     {
-        target.AddBuff(BuffID.Ichor, 60 * 5);
+        target.AddBuff(BuffID.Ichor, 60 * 5, false);
+        
+        ParticleOrchestrator.RequestParticleSpawn(false, ParticleOrchestraType.Excalibur, new ParticleOrchestraSettings
+        {
+            PositionInWorld = Main.rand.NextVector2FromRectangle(target.Hitbox)
+        });
     }
+    
+    public override void OnKill(int timeLeft)
+    {
+        for (var i = 0; i < 50; i++)
+        {
+            var splashDir = Main.rand.NextVector2Circular(2f, 2f);
+            Dust.NewDust(
+                Projectile.position,
+                Projectile.width,
+                Projectile.height,
+                DustID.Ichor,
+                splashDir.X, splashDir.Y,
+                100,
+                Scale: 1f
+            );
+        }
+    }
+    
+    
+    
 }

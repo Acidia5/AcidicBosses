@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using AcidicBosses.Common.Effects;
 using AcidicBosses.Common.RenderManagers;
+using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.ProjectileBases;
 using AcidicBosses.Helpers;
 using Luminance.Common.Easings;
+using Luminance.Common.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -27,46 +29,86 @@ public class KingSlimeCrownLaser : DeathrayBase
     {
         base.AI();
 
-        const int animLen = 5;
+        const int animLen = 15;
         var timeAlive = maxTimeLeft - Projectile.timeLeft;
+
+        if (timeAlive == 0)
+        {
+            // Burst Dust
+            for (var i = 0; i < 25; i++)
+            {
+                Dust.NewDust(Projectile.position, 0, 0, DustID.GemRuby);
+            }
+            
+            // Star
+            var scaleCurve = new PiecewiseCurve()
+                .Add(EasingCurves.Quadratic, EasingType.In, 0f, 1f, 4f);
+            new GlowStarParticle(
+                Projectile.position,
+                Vector2.Zero,
+                0,
+                Color.White,
+                Projectile.timeLeft
+            )
+            {
+                IgnoreLighting = true,
+                GlowColor = Color.Red,
+                OnUpdate = p =>
+                {
+                    var scale = scaleCurve.Evaluate(p.LifetimeRatio);
+                    p.Scale = Vector2.One * scale;
+                    p.AngularVelocity = (1f - p.LifetimeRatio) * MathHelper.Pi / 16f;
+                    p.Opacity = 1f;
+                    p.DrawColor = Color.White;
+                }
+            }.Spawn();
+        }
+        
+        // Subtle Pulse
+        var curve = new PiecewiseCurve()
+            .Add(EasingCurves.Sine, EasingType.InOut, 1.2f, 0.5f, 0.8f)
+            .Add(EasingCurves.Sine, EasingType.InOut, 0.8f, 1f);
+        var cycleLen = 60f;
+        var pulseT = (timeAlive % cycleLen) / cycleLen;
+        var widthGoal = curve.Evaluate(pulseT);
+        
         if (timeAlive <= animLen)
         {
             // Bounce in
             var t = EasingHelper.BackOut((float) timeAlive / animLen);
-            widthScale = MathHelper.Lerp(0f, 1f, t);
+            widthScale = MathHelper.Lerp(0f, widthGoal, t);
         }
         else if (Projectile.timeLeft <= animLen)
         {
             // Bounce in
             var t = EasingHelper.QuadIn((float) Projectile.timeLeft / animLen);
-            widthScale = MathHelper.Lerp(0f, 1f, t);
+            widthScale = MathHelper.Lerp(0f, widthGoal, t);
         }
         else
         {
-            widthScale = 1f;
+            
+            widthScale = widthGoal;
         }
     }
 
     protected override void SpawnDust(Vector2 position)
     {
-        if (Projectile.timeLeft == maxTimeLeft)
+        if (Main.rand.NextBool(20))
         {
-            Dust.NewDust(position, 0, 0, DustID.GemRuby, Scale: 0.5f);
+            var d = Dust.NewDustDirect(position, 0, 0, DustID.GemRuby, Alpha: 50, Scale: 2f);
+            d.noGravity = true;
         }
-
-        if (Main.rand.NextBool(50))
+        
+        if (Main.rand.NextBool(20))
         {
-            Dust.NewDust(position, 0, 0, DustID.GemRuby, Scale: 0.5f);
+            var d = Dust.NewDustDirect(position, 0, 0, DustID.GemRuby, Alpha: 50, Scale: 1.2f);
+            d.noGravity = true;
         }
     }
 
     public override bool PreDraw(ref Color lightColor)
     {
-        var lc = lightColor;
-        DrawRenderTargetSystem.DrawToTarget(ModRenderTargets.ProjectileBloom, sb =>
-        {
-            base.PreDraw(ref lc);
-        });
+        base.PreDraw(ref lightColor);
         
         return false;
     }

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using AcidicBosses.Common.Effects;
+using AcidicBosses.Core.Animation;
 using AcidicBosses.Core.StateManagement;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,6 +33,11 @@ public abstract class AcidicNPCOverride : GlobalNPC
     protected abstract int OverriddenNpc { get; }
     
     protected abstract bool BossEnabled { get; }
+
+    // FindFrame() doesn't override vanilla behavior, so use these instead of npc.frame
+    // This Frame will replace Npc.frame after AcidFindFrame()
+    protected double FrameCounter = 0;
+    public Rectangle Frame;
     
     /// <summary>
     /// The npc... Not much to say about this.
@@ -48,6 +54,8 @@ public abstract class AcidicNPCOverride : GlobalNPC
     protected float[] ExtraLocalAI = new float[4];
 
     private bool isFirstFrame = true;
+
+    private AcidAnimation? backgroundAnimation;
 
     public override bool AppliesToEntity(NPC entity, bool lateInstantiation)
     {
@@ -72,6 +80,7 @@ public abstract class AcidicNPCOverride : GlobalNPC
         if (isFirstFrame)
         {
             Npc = npc;
+            Frame = npc.frame;
             OnFirstFrame(npc);
             isFirstFrame = false;
         }
@@ -79,6 +88,12 @@ public abstract class AcidicNPCOverride : GlobalNPC
         AttackManager.PreAttackAi();
         var runBase = AcidAI(npc);
         AttackManager.PostAttackAi();
+        
+        if (backgroundAnimation?.RunAnimation() ?? false)
+        {
+            backgroundAnimation.Reset();
+            backgroundAnimation = null;
+        }
 
         return runBase;
     }
@@ -185,6 +200,24 @@ public abstract class AcidicNPCOverride : GlobalNPC
     {
         if (!ShouldOverride()) return;
     }
+    
+    /// <summary>
+    /// Overrides FindFrame
+    /// </summary>
+    /// <param name="npc"></param>
+    /// <param name="frameHeight"></param>
+    /// <returns>true if using npc.frame, false if using Frame</returns>
+    public virtual bool AcidFindFrame(NPC npc, int frameHeight)
+    {
+        return true;
+    }
+
+    public sealed override void FindFrame(NPC npc, int frameHeight)
+    {
+        if (!ShouldOverride()) return;
+        if (isFirstFrame) return; // Use vanilla rendering if acidic stuff hasn't taken over yet
+        if (!AcidFindFrame(npc, frameHeight)) npc.frame = Frame;
+    }
 
     // Wrapper for PreDraw
     public virtual bool AcidicDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color lightColor)
@@ -220,5 +253,11 @@ public abstract class AcidicNPCOverride : GlobalNPC
     public bool ShouldOverride()
     {
         return BossEnabled && !AcidicBosses.DisableReworks();
+    }
+
+    public void PlayBackgroundAnimation(AcidAnimation anim)
+    {
+        if (backgroundAnimation != null) backgroundAnimation.Reset();
+        backgroundAnimation = anim;
     }
 }

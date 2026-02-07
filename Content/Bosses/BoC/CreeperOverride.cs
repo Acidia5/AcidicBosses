@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using AcidicBosses.Common.Configs;
+using AcidicBosses.Common.Textures;
 using AcidicBosses.Content.Particles.Animated;
 using AcidicBosses.Content.ProjectileBases;
+using AcidicBosses.Core.Graphics.Sprites;
+using AcidicBosses.Helpers;
 using Luminance.Common.VerletIntergration;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -21,6 +25,9 @@ public class CreeperOverride : AcidicNPCOverride
     protected override int OverriddenNpc => NPCID.Creeper;
     
     protected override bool BossEnabled => BossToggleConfig.Get().EnableBrainOfCthulhu;
+    
+    private float squash = 0f;
+    private Vector2 Scale => new Vector2(Npc.scale + squash * Npc.scale, Npc.scale - squash * Npc.scale);
 
     public enum AttackType
     {
@@ -57,8 +64,7 @@ public class CreeperOverride : AcidicNPCOverride
         ConserveEnergy = true
     };
     
-    private Texture2D connectionTex = TextureAssets.Chain12.Value; // The sprite is oriented vertically
-    private Asset<Texture2D> connectionTexAsset = TextureAssets.Chain12;
+    private Asset<Texture2D> connectionTex = TextureAssets.Chain12;
     private int connectionLength = 500;
 
     public override void SetStaticDefaults()
@@ -109,6 +115,8 @@ public class CreeperOverride : AcidicNPCOverride
             return false;
         }
         
+        squash = MathHelper.Lerp(squash, 0f, 0.1f);
+        
         if (AiTimer > 0 && !countUpTimer)
             AiTimer--;
 
@@ -130,7 +138,7 @@ public class CreeperOverride : AcidicNPCOverride
     {
         connectionSegments.Clear(); // Just to be safe
         
-        for (var i = 0; i < connectionLength; i += connectionTex.Height)
+        for (var i = 0; i < connectionLength; i += connectionTex.Value.Height)
         {
             connectionSegments.Add(
                 new VerletSegment(new Vector2(Npc.Center.X + i, Npc.Center.Y), Vector2.Zero));
@@ -167,7 +175,10 @@ public class CreeperOverride : AcidicNPCOverride
                 break;
         }
 
-        if (attackState > 1) attackState = 0;
+        if (attackState > 1)
+        {
+            attackState = 0;
+        }
     }
 
     private void SuperDashAI()
@@ -202,7 +213,10 @@ public class CreeperOverride : AcidicNPCOverride
         }
 
         // 2 Dashes
-        if (attackState > 2) attackState = 0;
+        if (attackState > 2)
+        {
+            attackState = 0;
+        }
     }
 
     #endregion
@@ -250,9 +264,9 @@ public class CreeperOverride : AcidicNPCOverride
         countUpTimer = true;
         var target = Main.player[Npc.target].Center;
 
-        if (AiTimer == 0 && Main.netMode != NetmodeID.MultiplayerClient)
+        if (AiTimer == 0)
         {
-            var line = NewDashLine(Npc.Center, 0f, dashAtTime);
+            NewDashLine(dashAtTime);
         }
 
         if (AiTimer == 0)
@@ -269,6 +283,9 @@ public class CreeperOverride : AcidicNPCOverride
             useAfterimages = true;
             Npc.TargetClosest();
             Npc.velocity = Npc.rotation.ToRotationVector2() * 25f;
+
+            squash = 0.5f;
+            SoundEngine.PlaySound(SoundID.DD2_JavelinThrowersAttack with { Volume = 0.8f }, Npc.Center);
         }
         else if (AiTimer >= dashAtTime + dashLength)
         {
@@ -283,10 +300,17 @@ public class CreeperOverride : AcidicNPCOverride
         isDone = false;
     }
     
-    private Projectile NewDashLine(Vector2 position, float offset, int lifetime, bool anchor = true)
+    private void NewDashLine(int lifetime)
     {
-        var ai1 = anchor ? Npc.whoAmI : -1;
-        return BaseLineProjectile.Create<CreeperDashLine>(Npc.GetSource_FromAI(), position, offset, lifetime, ai1);
+        new EffectLine(TextureRegistry.InvertedFadingGlowLine, Npc.Center, Npc.rotation, 1000f, 14f, Color.Crimson, lifetime)
+        {
+            OnUpdate = line =>
+            {
+                line.Position = Npc.Center;
+                line.Rotation = Npc.rotation;
+                line.DrawColor = Color.Crimson * EasingHelper.CubicOut(1f - line.LifetimeRatio);
+            }
+        }.Spawn();
     }
     
     #endregion
@@ -308,14 +332,14 @@ public class CreeperOverride : AcidicNPCOverride
                 var afterImageColor = Color.Multiply(drawColor, fade);
 
                 var pos = npc.oldPos[i] + new Vector2(npc.width, npc.height) / 2f - Main.screenPosition;
-                spriteBatch.Draw(texture, pos, npc.frame, afterImageColor, 0f, origin, npc.scale,
+                spriteBatch.Draw(texture, pos, npc.frame, afterImageColor, npc.rotation, origin, Scale,
                     SpriteEffects.None, 0f);
             }
 
         spriteBatch.Draw(
             texture, drawPos,
             npc.frame, drawColor,
-            0f, origin, npc.scale,
+            npc.rotation, origin, Scale,
             SpriteEffects.None, 0f);
 
         return false;
@@ -326,11 +350,11 @@ public class CreeperOverride : AcidicNPCOverride
         var brain = Main.npc[NPC.crimsonBoss];
         if (brain == null || !brain.active) return;
         
-        connectionSegments = VerletSimulations.RopeVerletSimulation(connectionSegments, brain.Center,
-            connectionLength * 0.75f, connectionSimSettings, Npc.Center);
+        connectionSegments = VerletSimulations.RopeVerletSimulation(connectionSegments, Npc.Center,
+            connectionLength * 0.75f, connectionSimSettings, brain.Center);
         
         var renderSettings = new PrimitiveSettings(
-            _ => connectionTex.Width / 2f,
+            _ => connectionTex.Value.Width / 2f,
             p =>
             {
                 var index = (int) (p * connectionSegments.Count);
@@ -341,7 +365,7 @@ public class CreeperOverride : AcidicNPCOverride
             },
             Shader: ShaderManager.GetShader("AcidicBosses.Rope")
         );
-        renderSettings.Shader.SetTexture(connectionTexAsset, 1, SamplerState.PointClamp);
+        renderSettings.Shader.SetTexture(connectionTex, 1, SamplerState.PointClamp);
         renderSettings.Shader.TrySetParameter("segments", connectionSegments.Count);
     
         PrimitiveRenderer.RenderTrail(connectionSegments.Select(s => s.Position), renderSettings);

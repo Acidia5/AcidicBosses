@@ -23,8 +23,8 @@ Projectiles: {
 	SpazFlamethrower.DisplayName: Spaz Flamethrower
 	NpcAfterimageProjectile.DisplayName: Npc Afterimage Projectile
 	NpcAfterimageTrail.DisplayName: Npc Afterimage Trail
-	RetDeathray.DisplayName: Ret Deathray
-	RetDeathrayIndicator.DisplayName: Ret Deathray Indicator
+	RetDeathray.DisplayName: Laser
+	RetDeathrayIndicator.DisplayName: Laser
 	TestProj.DisplayName: Test Proj
 	RetLaserIndicator.DisplayName: Ret Laser Indicator
 	RetSweepIndicator.DisplayName: Ret Sweep Indicator
@@ -42,12 +42,24 @@ Projectiles: {
 	QueenBeePillarLine.DisplayName: Queen Bee Pillar Line
 	EyePhantomDashLine.DisplayName: Eye Phantom Dash Line
 	BeeWaveIndicator.DisplayName: Bee Wave Indicator
+	QueenSlimeDeathray.DisplayName: Queenly Laser
+	CrystalShard.DisplayName: Crystal Shard
+	CrystalSpike.DisplayName: Crystal Spike
+	QueenSlimeSlamTrail.DisplayName: Queen Slime
+	BloodShot.DisplayName: Blood Shot
+	IceShot.DisplayName: Ice Shot
+	ShadowSpike.DisplayName: Shadow Spike
 }
 
 Buffs: {
 	NewTonguedBuff: {
 		DisplayName: The Tongue
 		Description: You are being sucked into the mouth
+	}
+
+	InsanityBuff: {
+		DisplayName: Insanity
+		Description: Deerclops is straining your mind
 	}
 }
 
@@ -56,6 +68,7 @@ NPCs: {
 	EasyPixieNPC.DisplayName: Pixie
 	EoWServant.DisplayName: Servant of the Eater
 	TwinsController.DisplayName: Twins Controller
+	ShadowHand.DisplayName: Shadow Hand
 }
 
 Items: {
@@ -142,7 +155,20 @@ Configs: {
 			Label: Enable Queen Bee
 			Tooltip: ""
 		}
+
+		EnableQueenSlime: {
+			Label: Enable Queen Slime
+			Tooltip: ""
+		}
+
+		EnableDeerclops: {
+			Label: Enable Deerclops
+			Tooltip: ""
+		}
 	}
 }
 
-Bestiary.EoWServant: This miniature worm exists to serve and protect its master as it devours all it can.
+Bestiary: {
+	EoWServant: This miniature worm exists to serve and protect its master as it devours all it can.
+	ShadowHand: A hand made of shadow that reaches out from the darkness.
+}

@@ -1,4 +1,5 @@
 ﻿using AcidicBosses.Common.RenderManagers;
+using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.ProjectileBases;
 using AcidicBosses.Helpers;
 using Luminance.Common.Utilities;
@@ -52,6 +53,25 @@ public class RetDeathray : DeathrayBase
             widthScale = 1f;
         }
 
+        if (Main.rand.NextBool(0.5f))
+        {
+            new GlowStarParticle(
+                Projectile.position,
+                Main.rand.NextVector2Circular(3f, 3f),
+                Main.rand.NextFloatDirection(),
+                Color.White,
+                15
+            )
+            {
+                GlowColor = Color.Red,
+                AngularVelocity = Main.rand.NextFloat(0.1f),
+                OnUpdate = p =>
+                {
+                    p.Scale = Vector2.Lerp(new Vector2(1.5f), Vector2.Zero, p.LifetimeRatio);
+                }
+            }.Spawn();
+        }
+
         timeAlive++;
     }
 
@@ -82,6 +102,7 @@ public class RetDeathray : DeathrayBase
         var tex = AtlasManager.GetTexture("AcidicBosses.GlowStar");
         var scaleOffset = Main.rand.NextFloat(-0.2f, 0.2f);
         
+        Main.spriteBatch.Draw(tex, pos, tex.Frame, Color.Red, rot, tex.Frame.Size() / 2f, scale: Vector2.One * (3f + scaleOffset) * 1.25f);
         Main.spriteBatch.Draw(tex, pos, tex.Frame, Color.White, rot, tex.Frame.Size() / 2f, scale: Vector2.One * (3f + scaleOffset));
         return false;
     }

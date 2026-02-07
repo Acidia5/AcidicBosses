@@ -6,6 +6,8 @@ using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.Particles.Animated;
 using AcidicBosses.Content.ProjectileBases;
 using AcidicBosses.Content.Projectiles;
+using AcidicBosses.Core.Graphics.DustManagement;
+using AcidicBosses.Core.Graphics.Sprites;
 using AcidicBosses.Core.StateManagement;
 using AcidicBosses.Helpers;
 using Luminance.Common.Utilities;
@@ -59,6 +61,9 @@ public class SkeletronHead : AcidicNPCOverride
 
     private bool isFleeing = false;
 
+    private Color eyeColor = Color.Transparent;
+    private Color currentEyeColor = Color.Transparent;
+
     public override void OnFirstFrame(NPC npc)
     {
         phaseTracker = new PhaseTracker([
@@ -87,6 +92,8 @@ public class SkeletronHead : AcidicNPCOverride
                 AttackManager.AiTimer = 0;
             }
         }
+
+        currentEyeColor = Color.Lerp(currentEyeColor, eyeColor, 0.1f);
 
         if (isFleeing) FleeAI();
         else if (Main.dayTime)
@@ -209,6 +216,7 @@ public class SkeletronHead : AcidicNPCOverride
     private void Phase_Transition()
     {
         AttackManager.CountUp = true;
+        eyeColor = Color.Cyan;
         
         if (AttackManager.AiTimer == 0)
         {
@@ -222,7 +230,7 @@ public class SkeletronHead : AcidicNPCOverride
         if (AttackManager.AiTimer < 30)
         {
             var shockT = AttackManager.AiTimer / 30f;
-            EffectsManager.ShockwaveActivate(Npc.Center, 0.15f, 0.25f, Color.Red, shockT);
+            EffectsManager.ShockwaveActivate(Npc.Center, 0.05f, 0.25f, Color.Transparent, shockT);
         }
 
         // Spin
@@ -239,6 +247,7 @@ public class SkeletronHead : AcidicNPCOverride
             CurrentHandState = HandState.LockSide;
             ResetExtraAI();
             Npc.rotation = 0f;
+            eyeColor = Color.Transparent;
         }
 
         if (Main.netMode == NetmodeID.MultiplayerClient) return;
@@ -345,12 +354,18 @@ public class SkeletronHead : AcidicNPCOverride
 
         Attack_HoverAbove();
 
-        if (AttackManager.AiTimer == 150 && burst) Attack_WaterboltBurst(8);
+        if (AttackManager.AiTimer == 90 && burst) eyeColor = Color.Cyan;
+        if (AttackManager.AiTimer == 150 && burst)
+        {
+            eyeColor = Color.Transparent;
+            Attack_WaterboltBurst(8);
+        }
 
         if (isDone)
         {
             CurrentHandState = HandState.HoverSide;
             AttackManager.CountUp = false;
+            eyeColor = Color.Transparent;
         }
 
         return isDone;
@@ -365,12 +380,15 @@ public class SkeletronHead : AcidicNPCOverride
         CurrentHandState = HandState.NoInteractLockHead;
         useAfterimages = true;
         
+        if (spawnHomingSkulls) eyeColor = Color.White;
+        
         if (AttackManager.AiTimer >= length)
         {
             var isDone = Attack_SpinRecovery(length, 10);
             Npc.rotation = 0;
             CurrentHandState = HandState.HoverSide;
             Npc.defense = Npc.defDefense;
+            eyeColor = Color.Transparent;
             return isDone;
         }
 
@@ -406,10 +424,7 @@ public class SkeletronHead : AcidicNPCOverride
             var awayDir = Npc.DirectionTo(goal);
             var distanceToGoal = Npc.Distance(goal);
             
-            if (Main.netMode != NetmodeID.MultiplayerClient)
-            {
-                NewAfterimage(startPos, goal, 60);
-            }
+            NewAfterimage(startPos, goal, 60);
             
             Npc.Center = goal;
             Npc.velocity = awayDir * 20f;
@@ -434,8 +449,8 @@ public class SkeletronHead : AcidicNPCOverride
 
     private bool Attack_RisingSkulls(float speed, float spacing, bool shouldSlap)
     {
-        const int length = 120;
-        const int indicatorLength = 30;
+        const int length = 150;
+        const int indicatorLength = 60;
 
         const int skullsToEachSide = 12;
 
@@ -453,22 +468,22 @@ public class SkeletronHead : AcidicNPCOverride
             CurrentHandState = HandState.HoverSide;
             
             AttackManager.CountUp = false;
+            eyeColor = Color.Transparent;
         }
 
         if (AttackManager.AiTimer == 0)
         {
+            eyeColor = Color.Orange;
             var center = Main.player[Npc.target].Center;
             centerX = center.X;
             centerY = center.Y;
             
             SoundEngine.PlaySound(SoundID.ForceRoarPitched, Npc.Center);
             CurrentHandState = HandState.LockHead;
-            
-            if (Main.netMode == NetmodeID.MultiplayerClient) return isDone;
 
             var pos = center;
             pos.Y = Utilities.FindGroundVertical(pos.ToTileCoordinates()).ToWorldCoordinates().Y;
-            NewCursedSkullLine(pos, -MathHelper.PiOver2, indicatorLength * 2);
+            Indicator(pos);
             
             for (var i = 1; i <= skullsToEachSide; i++)
             {
@@ -481,22 +496,20 @@ public class SkeletronHead : AcidicNPCOverride
                 leftPos.Y = Utilities.FindGroundVertical(leftPos.ToTileCoordinates()).ToWorldCoordinates().Y;
                 rightPos.Y = Utilities.FindGroundVertical(rightPos.ToTileCoordinates()).ToWorldCoordinates().Y;
                 
-                NewCursedSkullLine(leftPos, -MathHelper.PiOver2, indicatorLength * 2);
-                NewCursedSkullLine(rightPos, -MathHelper.PiOver2, indicatorLength * 2);
+                Indicator(leftPos);
+                Indicator(rightPos);
             }
         }
 
         if (AttackManager.AiTimer == indicatorLength)
         {
+            eyeColor = Color.Transparent;
+            
             var center = new Vector2(centerX, centerY);
 
-            if (Main.netMode != NetmodeID.MultiplayerClient)
-            {
-                var pos = center;
-                pos.Y = Utilities.FindGroundVertical(pos.ToTileCoordinates()).ToWorldCoordinates().Y;
-            
-                NewCursedSkull(pos, Vector2.UnitY * -speed);
-            }
+            var pos = center;
+            pos.Y = Utilities.FindGroundVertical(pos.ToTileCoordinates()).ToWorldCoordinates().Y;
+            Skull(pos);
             
             for (var i = 1; i <= skullsToEachSide; i++)
             {
@@ -509,19 +522,59 @@ public class SkeletronHead : AcidicNPCOverride
                 leftPos.Y = Utilities.FindGroundVertical(leftPos.ToTileCoordinates()).ToWorldCoordinates().Y;
                 rightPos.Y = Utilities.FindGroundVertical(rightPos.ToTileCoordinates()).ToWorldCoordinates().Y;
 
-                new FireSmokeParticle(leftPos, Vector2.Zero, 0f, Color.Gray, 30).Spawn();
-                new FireSmokeParticle(rightPos, Vector2.Zero, 0f, Color.Gray, 30).Spawn();
-
-                if (Main.netMode == NetmodeID.MultiplayerClient) continue;
-                
-                NewCursedSkull(leftPos, Vector2.UnitY * -speed);
-                NewCursedSkull(rightPos, Vector2.UnitY * -speed);
+                Skull(leftPos);
+                Skull(rightPos);
             }
             
             if (shouldSlap) CurrentHandState = HandState.Slap;
         }
 
         return isDone;
+
+        void Indicator(Vector2 pos)
+        {
+            new DustEmitter(DustID.Torch, pos + new Vector2(0, 16), 0.5f, indicatorLength)
+            {
+                Scale = 2f,
+                VelocityOffsetSupplier = () => Main.rand.NextVector2Unit(
+                    -MathHelper.PiOver2 - 0.025f,
+                    0.05f
+                ) * Main.rand.NextFloat(15f, 20f),
+                OnUpdate = emitter =>
+                {
+                    emitter.Position.Y = MathF.Min(pos.Y, Main.LocalPlayer.Center.Y + Main.screenHeight / 2f);
+                }
+            }.Spawn();
+            
+            new DustEmitter(DustID.Smoke, pos + new Vector2(0, 16), 1f, indicatorLength)
+            {
+                VelocityOffsetSupplier = () => Main.rand.NextVector2Unit(
+                    -MathHelper.PiOver2 - 0.1f,
+                    0.2f
+                ) * Main.rand.NextFloat(5f, 10f),
+                OnUpdate = emitter =>
+                {
+                    emitter.Position.Y = MathF.Min(pos.Y, Main.LocalPlayer.Center.Y + Main.screenHeight / 2f);
+                }
+            }.Spawn();
+        }
+
+        void Skull(Vector2 pos)
+        {
+            new FireSmokeParticle(pos, Vector2.Zero, 0f, Color.Gray, 30).Spawn();
+            for (var i = 0; i < 20; i++)
+            {
+                Dust.NewDust(
+                    pos + new Vector2(0, 16),
+                    0, 0,
+                    DustID.Smoke,
+                    SpeedY: -5f
+                );
+            }
+            
+            if (Main.netMode == NetmodeID.MultiplayerClient) return;
+            NewCursedSkull(pos, Vector2.UnitY * -speed);
+        }
     }
 
     private bool Attack_Muramasa(float speed, float spawnDist)
@@ -544,6 +597,7 @@ public class SkeletronHead : AcidicNPCOverride
     {
         var isDone = false;
         AttackManager.CountUp = true;
+        eyeColor = Color.Cyan;
 
         const int shots = 10;
         const int delay = 20;
@@ -561,6 +615,7 @@ public class SkeletronHead : AcidicNPCOverride
         {
             isDone = true;
             AttackManager.CountUp = false;
+            eyeColor = Color.Transparent;
             ResetExtraAI();
         }
         
@@ -580,15 +635,28 @@ public class SkeletronHead : AcidicNPCOverride
 
     private bool Attack_HomingSkulls()
     {
-        if (Main.netMode == NetmodeID.MultiplayerClient) return true;
-
         const float speed = 2f;
         const float dAngle = MathHelper.TwoPi / 6f;
         var target = Main.player[Npc.target].Center;
+        var dir = Npc.DirectionTo(target).ToRotation();
+        
+        for (var i = 0; i < 20; i++)
+        {
+            var vel = (dir + Main.rand.NextFloat(-dAngle, dAngle)).ToRotationVector2() * Main.rand.NextFloat(5f, 10f);
+            Dust.NewDustPerfect(Npc.Center, DustID.FireworksRGB, vel, newColor: Color.White);
+        }
+        
+        for (var i = 0; i < 30; i++)
+        {
+            var vel = (dir + Main.rand.NextFloat(-dAngle, dAngle)).ToRotationVector2() * Main.rand.NextFloat(10f, 20f);
+            Dust.NewDustPerfect(Npc.Center, DustID.Smoke, vel);
+        }
+        
+        if (Main.netMode == NetmodeID.MultiplayerClient) return true;
 
         for (var i = -1; i < 2; i++)
         {
-            var dir = Npc.DirectionTo(target).ToRotation();
+            dir = Npc.DirectionTo(target).ToRotation();
             dir = MathHelper.WrapAngle(dir + dAngle * i);
             NewHomingSkull(Npc.Center,  dir.ToRotationVector2() * speed);
         }
@@ -598,9 +666,11 @@ public class SkeletronHead : AcidicNPCOverride
 
     private bool Attack_WaterboltBurst(int bolts)
     {
-        var burst = new RingBurstParticle(Npc.Center, Vector2.Zero, 0f, Color.Blue, 30);
-        burst.Scale *= 2f;
-        burst.Spawn();
+        for (var i = 0; i < 50; i++)
+        {
+            var vel = Main.rand.NextVector2Circular(20f, 20f);
+            Dust.NewDustPerfect(Npc.Center, DustID.DungeonWater, vel);
+        }
         
         if (Main.netMode == NetmodeID.MultiplayerClient) return true;
         const float speed = 4f;
@@ -640,7 +710,7 @@ public class SkeletronHead : AcidicNPCOverride
 
     private Projectile NewMuramasaLine(Vector2 position, float rotation)
     {
-        var proj = BaseLineProjectile.Create<MurasamaLine>(Npc.GetSource_FromAI(), position, rotation, 120);
+        var proj = BaseLineProjectile.Create<MurasamaLine>(Npc.GetSource_FromAI(), position, rotation, 90);
         return proj;
     }
 
@@ -656,9 +726,9 @@ public class SkeletronHead : AcidicNPCOverride
             ModContent.ProjectileType<EvilWaterbolt>(), Npc.damage, 3);
     }
     
-    private Projectile NewAfterimage(Vector2 startPos, Vector2 endPos, int lifetime)
+    private void NewAfterimage(Vector2 startPos, Vector2 endPos, int lifetime)
     {
-        return NpcAfterimageTrail.Create(Npc.GetSource_FromAI(), startPos, endPos, Npc.whoAmI);
+        new FakeAfterimage(startPos, endPos, Npc).Spawn();
     }
     
     private NPC NewHand(Vector2 position, int side)
@@ -697,6 +767,24 @@ public class SkeletronHead : AcidicNPCOverride
             texture, drawPos,
             npc.frame, lightColor,
             npc.rotation, origin, npc.scale,
+            SpriteEffects.None, 0f);
+
+        var eyeTex = TextureAssets.Extra[ExtrasID.SharpTears].Value;
+        var eyeFrame = eyeTex.Frame();
+        var leftEyePos = new Vector2(-18, -10).RotatedBy(npc.rotation);
+        leftEyePos += npc.DirectionTo(TargetPlayer.Center) * 3f;
+        spriteBatch.Draw(
+            eyeTex, drawPos + leftEyePos,
+            eyeFrame, currentEyeColor,
+            npc.rotation, eyeFrame.Size() * 0.5f, npc.scale * 0.25f,
+            SpriteEffects.None, 0f);
+
+        var rightEyePos = new Vector2(18, -10).RotatedBy(npc.rotation);
+        rightEyePos += npc.DirectionTo(TargetPlayer.Center) * 3f;
+        spriteBatch.Draw(
+            eyeTex, drawPos + rightEyePos,
+            eyeFrame, currentEyeColor,
+            npc.rotation, eyeFrame.Size() * 0.5f, npc.scale * 0.25f,
             SpriteEffects.None, 0f);
 
         return false;

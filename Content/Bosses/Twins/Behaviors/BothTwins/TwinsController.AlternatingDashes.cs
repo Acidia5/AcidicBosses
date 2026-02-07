@@ -8,6 +8,12 @@ public partial class TwinsController
 {
     private bool Attack_AlternatingDashes(int length, int dashLength, float speed, int trackTime, int dashAtTime)
     {
+        if (Spazmatism == null || Retinazer == null)
+        {
+            attackManager.CountUp = false;
+            return true;
+        }
+        
         attackManager.CountUp = true;
         
         ref var turn = ref NPC.localAI[0];

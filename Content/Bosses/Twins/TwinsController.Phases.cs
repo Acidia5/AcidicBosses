@@ -99,9 +99,9 @@ public partial class TwinsController
     
     private void Phase_Transformed1()
     {
-        Spazmatism.MechForm = true;
-        Retinazer.MechForm = true;
-        
+        if (Spazmatism != null) Spazmatism.MechForm = true;
+        if (Retinazer != null) Retinazer.MechForm = true;
+
         if (attackManager.InWindDown)
         {
             if (AverageLifePercent <= 0.55f)
@@ -146,9 +146,9 @@ public partial class TwinsController
     
     private void Phase_Transformed2()
     {
-        Spazmatism.MechForm = true;
-        Retinazer.MechForm = true;
-        
+        if (Spazmatism != null) Spazmatism.MechForm = true;
+        if (Retinazer != null) Retinazer.MechForm = true;
+
         if (attackManager.InWindDown)
         {
             var target = Main.player[NPC.target];

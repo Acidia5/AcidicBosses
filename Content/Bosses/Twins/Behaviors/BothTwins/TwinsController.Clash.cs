@@ -1,4 +1,5 @@
 ﻿using System;
+using AcidicBosses.Common.Effects;
 using AcidicBosses.Content.Particles;
 using AcidicBosses.Content.Particles.Animated;
 using AcidicBosses.Core.Animation;
@@ -30,6 +31,7 @@ public partial class TwinsController
         // Initialize data and teleoprt into position
         anim.AddInstantEvent(0, () =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var target = Main.player[NPC.target];
             
             anim.Data.Set(rotationKey, target.velocity.SafeNormalize(Vector2.UnitX).ToRotation());
@@ -49,6 +51,7 @@ public partial class TwinsController
         // Spin Indication
         var spinTiming = anim.AddSequencedEvent(90, (progress, frame) =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var startingRot = anim.Data.Get<float>(rotationKey);
             
             var distCurve = new PiecewiseCurve()
@@ -71,6 +74,7 @@ public partial class TwinsController
         
         anim.AddInstantEvent(spinTiming.EndTime, () =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var target = Main.player[NPC.target];
             anim.Data.Set(centerPosKey, target.Center);
             
@@ -81,6 +85,7 @@ public partial class TwinsController
         // Dash
         var clashTiming = anim.AddSequencedEvent(dashLen, (progress, frame) =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var centerPos = anim.Data.Get<Vector2>(centerPosKey);
             
             var options = new DashOptions
@@ -100,6 +105,7 @@ public partial class TwinsController
         // Clash Effects
         anim.AddInstantEvent(clashTiming.EndTime, () =>
         {
+            if (Spazmatism == null || Retinazer == null) return;
             var centerPos = anim.Data.Get<Vector2>(centerPosKey);
             var rotation = anim.Data.Get<float>(rotationKey);
 
@@ -117,19 +123,9 @@ public partial class TwinsController
             }, centerPos);
 
             new RingBurstParticle(centerPos, Vector2.Zero, 0f, Color.White, 30).Spawn();
-            new InternalCircleParticle(centerPos, Vector2.Zero, 0f, Color.White, 60)
-            {
-                OnUpdate = p =>
-                {
-                    var scaleEase = EasingHelper.ExpOut(p.LifetimeRatio);
-                    var fadeEase = EasingHelper.ExpIn(p.LifetimeRatio);
-                    p.Scale = Vector2.Lerp(Vector2.Zero, new Vector2(4f, 4f), scaleEase);
-                    p.Opacity = MathHelper.Lerp(0.5f, 0f, fadeEase);
-                }
-            }.Spawn();
 
             var burst = anim.Data.Get<bool>("burst");
-            if (burst)
+            if (burst && AcidUtils.IsServer())
             {
                 var balls = 8;
                 for (var i = 0; i < balls; i++)
@@ -162,9 +158,20 @@ public partial class TwinsController
                         AngularVelocity = Main.rand.NextFloat(-1f, 1f),
                         OnUpdate = p => { p.Scale = Vector2.One * scaleCurve.Evaluate(p.LifetimeRatio); }
                     }.Spawn();
+                }
 
-                    dir = Main.rand.NextVector2Circular(1f, 20f).RotatedBy(rotation);
+                for (var i = 0; i < 50; i++)
+                {
+                    var dir = Main.rand.NextVector2Circular(1f, 20f).RotatedBy(rotation);
                     Dust.NewDustDirect(centerPos, 0, 0, DustID.MinecartSpark, dir.X, dir.Y, Scale: 3);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < 50; i++)
+                {
+                    var dir = Main.rand.NextVector2Circular(1f, 5f).RotatedBy(rotation);
+                    Dust.NewDustDirect(centerPos, 0, 0, DustID.Smoke, dir.X, dir.Y, Scale: 1);
                 }
             }
         });
@@ -174,6 +181,8 @@ public partial class TwinsController
     
     private bool Attack_Clash(bool useSparks, bool burst)
     {
+        if (Spazmatism == null || Retinazer == null) return true;
+        
         clashAnimation ??= CreateClashAnimation();
         clashAnimation.Data.Set("useSparks", useSparks);
         clashAnimation.Data.Set("burst", burst);

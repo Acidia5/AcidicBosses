@@ -9,6 +9,7 @@ public partial class TwinsController
     public bool Attack_TripleFireball()
     {
         if (Main.netMode == NetmodeID.MultiplayerClient) return true;
+        if (Spazmatism == null) return true;
 
         var offset = MathHelper.Pi / 12f;
         for (var i = -1; i <= 1; i++)
