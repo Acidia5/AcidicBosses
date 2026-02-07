@@ -16,7 +16,7 @@ namespace AcidicBosses.Content.Bosses.Deerclops;
 public partial class Deerclops : AcidicNPCOverride
 {
     protected override int OverriddenNpc => NPCID.Deerclops;
-    protected override bool BossEnabled => BossToggleConfig.Get().EnableDeerclops;
+    protected override bool BossEnabled => false;
 
     private PhaseTracker phaseTracker;
     

@@ -48,6 +48,7 @@ Projectiles: {
 	QueenSlimeSlamTrail.DisplayName: Queen Slime
 	BloodShot.DisplayName: Blood Shot
 	IceShot.DisplayName: Ice Shot
+	ShadowSpike.DisplayName: Shadow Spike
 }
 
 Buffs: {

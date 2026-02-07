@@ -65,7 +65,9 @@ public partial class Deerclops
             if (frame % 10 == 0 && AcidUtils.IsServer())
             {
                 var pos = Npc.Center + new Vector2(0f, -100f);
+                NewIceShot(pos, pos.DirectionTo(TargetPlayer.Center).RotatedBy(-0.1f) * 10f);
                 NewIceShot(pos, pos.DirectionTo(TargetPlayer.Center) * 10f);
+                NewIceShot(pos, pos.DirectionTo(TargetPlayer.Center).RotatedBy(0.1f) * 10f);
             }
         });
         

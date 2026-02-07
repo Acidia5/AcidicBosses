@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -256,7 +257,7 @@ public partial class WoF
         }
     }
     
-    private bool TryFindPartAtPos(out NPC? found, PartPosition pos)
+    private bool TryFindPartAtPos([NotNullWhen(true)] out NPC? found, PartPosition pos)
     {
         Func<NPC, bool> validType = n => n.type == NPCID.WallofFleshEye || n.type == ModContent.NPCType<WoFMouth>();
         var parts = Main.npc.Where(n => n.active && validType(n));
@@ -314,6 +315,37 @@ public partial class WoF
         }
 
         return position;
+    }
+
+    public Vector2 PartPosToWorldPosFront(PartPosition pos)
+    {
+        var worldPos = PartPosToWorldPos(pos);
+        if ((pos & PartPosition.Left) != 0)
+        {
+            worldPos.X += GetPartRect(pos).Width / 2f;
+        }
+        if ((pos & PartPosition.Right) != 0)
+        {
+            worldPos.X -= GetPartRect(pos).Width / 2f;
+        }
+
+        return worldPos;
+    }
+    
+    // For some reason the lasers spawn on the wrong side of the part???
+    public Vector2 PartPosToWorldPosBack(PartPosition pos)
+    {
+        var worldPos = PartPosToWorldPos(pos);
+        if ((pos & PartPosition.Left) != 0)
+        {
+            worldPos.X -= GetPartRect(pos).Width / 2f;
+        }
+        if ((pos & PartPosition.Right) != 0)
+        {
+            worldPos.X += GetPartRect(pos).Width / 2f;
+        }
+
+        return worldPos;
     }
 
     public Rectangle GetPartRect(PartPosition pos)

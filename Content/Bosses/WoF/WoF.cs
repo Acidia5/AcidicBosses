@@ -66,7 +66,10 @@ public partial class WoF : AcidicNPCOverride
     {
         phaseTracker = new PhaseTracker([
             PhaseIntro,
-            PhaseOne
+            PhaseOne,
+            PhaseMoveTransition,
+            PhaseTwo,
+            PhaseThree
         ]);
         AttackManager.Reset();
         WallDistance = 3000;

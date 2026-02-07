@@ -539,7 +539,11 @@ public class SkeletronHead : AcidicNPCOverride
                 VelocityOffsetSupplier = () => Main.rand.NextVector2Unit(
                     -MathHelper.PiOver2 - 0.025f,
                     0.05f
-                ) * Main.rand.NextFloat(15f, 20f)
+                ) * Main.rand.NextFloat(15f, 20f),
+                OnUpdate = emitter =>
+                {
+                    emitter.Position.Y = MathF.Min(pos.Y, Main.LocalPlayer.Center.Y + Main.screenHeight / 2f);
+                }
             }.Spawn();
             
             new DustEmitter(DustID.Smoke, pos + new Vector2(0, 16), 1f, indicatorLength)
@@ -547,7 +551,11 @@ public class SkeletronHead : AcidicNPCOverride
                 VelocityOffsetSupplier = () => Main.rand.NextVector2Unit(
                     -MathHelper.PiOver2 - 0.1f,
                     0.2f
-                ) * Main.rand.NextFloat(5f, 10f)
+                ) * Main.rand.NextFloat(5f, 10f),
+                OnUpdate = emitter =>
+                {
+                    emitter.Position.Y = MathF.Min(pos.Y, Main.LocalPlayer.Center.Y + Main.screenHeight / 2f);
+                }
             }.Spawn();
         }
 
@@ -764,6 +772,7 @@ public class SkeletronHead : AcidicNPCOverride
         var eyeTex = TextureAssets.Extra[ExtrasID.SharpTears].Value;
         var eyeFrame = eyeTex.Frame();
         var leftEyePos = new Vector2(-18, -10).RotatedBy(npc.rotation);
+        leftEyePos += npc.DirectionTo(TargetPlayer.Center) * 3f;
         spriteBatch.Draw(
             eyeTex, drawPos + leftEyePos,
             eyeFrame, currentEyeColor,
@@ -771,6 +780,7 @@ public class SkeletronHead : AcidicNPCOverride
             SpriteEffects.None, 0f);
 
         var rightEyePos = new Vector2(18, -10).RotatedBy(npc.rotation);
+        rightEyePos += npc.DirectionTo(TargetPlayer.Center) * 3f;
         spriteBatch.Draw(
             eyeTex, drawPos + rightEyePos,
             eyeFrame, currentEyeColor,

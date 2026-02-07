@@ -70,7 +70,7 @@ public partial class Deerclops
         });
 
         // Spawn spikes
-        var spawnSpikes = anim.AddSequencedEvent(30, (progress, frame) =>
+        var spawnSpikes = anim.AddSequencedEvent(20, (progress, frame) =>
         {
             var spikesSpawned = anim.Data.Get<int>("spikesSpawned");
 
@@ -79,7 +79,7 @@ public partial class Deerclops
             {
                 spikesSpawned++;
 
-                var scale = MathHelper.Lerp(0.5f, 1f, spikeProgress);
+                var scale = MathHelper.Lerp(0.6f, 1.2f, spikeProgress);
                 var offset = spikesSpawned * 32f * Npc.direction + 50f * Npc.direction;
                 var pos = BottomPos + new Vector2(offset, 0f);
 
