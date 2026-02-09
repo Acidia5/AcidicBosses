@@ -82,12 +82,15 @@ public class WoFDrawSystem : ModSystem
 		    var segmentsNeededToFill = (int)(topRightScreenPos / tileHeight) + 1;
 		    topRightScreenPos -= segmentsNeededToFill * tileHeight;
 	    }
+	    
+	    var screenRect = new Rectangle(-128, -128, Main.screenWidth + 128, Main.screenHeight + 128);
 
 	    for (var x = leftScreenPos; x >= -tileHeight; x -= tileHeight)
 	    {
 		    for (var y = topLeftScreenPos; y < bottomScreenPos; y += tileHeight)
 		    {
 			    var pos = new Vector2(x, y);
+			    if (!screenRect.Contains(pos.ToPoint())) continue;
 			    var frame = wofBack.Frame();
 			    var origin = Vector2.Zero;
 			    
@@ -114,6 +117,7 @@ public class WoFDrawSystem : ModSystem
 		    for (var y = topRightScreenPos; y < bottomScreenPos; y += tileHeight)
 		    {
 			    var pos = new Vector2(x, y);
+			    if (!screenRect.Contains(pos.ToPoint())) continue;
 			    var frame = wofBack.Frame();
 			    var origin = Vector2.Zero;
 			    

@@ -118,10 +118,14 @@ public partial class WoF : AcidicNPCOverride
 
     private void FleeAI()
     {
+        AttackManager.CountUp = true;
         Npc.TargetClosest();
 
         Npc.velocity.X = Npc.spriteDirection * EasingHelper.QuadIn(AttackManager.AiTimer / 30f);
-        Npc.EncourageDespawn(10);
+        if (Npc.position.X < Main.leftWorld || Npc.position.X > Main.rightWorld)
+        {
+            Npc.active = false;
+        }
     }
 
     public override bool AcidicDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color lightColor)
