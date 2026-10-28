@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Luminance.Common.Utilities;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
@@ -19,6 +20,7 @@ public class DrawRenderTargetSystem : ModSystem
     public delegate void RtDrawAction(SpriteBatch spritebatch);
 
     private static readonly Dictionary<ShadedRenderTarget, List<RtDrawAction>> DrawActions = new();
+    private static readonly FieldInfo SpritebatchHasBegunField = typeof(SpriteBatch).GetField("beginCalled", BindingFlags.NonPublic | BindingFlags.Instance);
     
     public override void OnModLoad()
     {
@@ -84,13 +86,10 @@ public class DrawRenderTargetSystem : ModSystem
     
     private void DrawToRenderTargets()
     {
-        try
+        var beginCalled = (bool)SpritebatchHasBegunField.GetValue(Main.spriteBatch);
+        if (beginCalled)
         {
             Main.spriteBatch.End();
-        }
-        catch (Exception _)
-        {
-            // ignored
         }
 
         foreach (var batch in DrawActions)
